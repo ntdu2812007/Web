@@ -209,11 +209,11 @@
     } = iconComponents;
 
     const ECOM_PLATFORMS = [
-      { name: 'Shopee', logo: '🛒', color: 'from-orange-500 to-amber-600', desc: 'Sàn TMĐT phổ biến nhất Việt Nam' },
-      { name: 'Lazada', logo: '🛍️', color: 'from-blue-600 to-indigo-700', desc: 'Hệ thống mua sắm trực tuyến uy tín' },
-      { name: 'TikTok Shop', logo: '🎵', color: 'from-slate-800 to-slate-950', desc: 'Xu hướng mua sắm video ngắn' },
-      { name: 'Tiki', logo: '📦', color: 'from-sky-500 to-blue-600', desc: 'Giao hàng nhanh 2h chất lượng cao' },
-      { name: 'Sendo', logo: '🏬', color: 'from-red-600 to-rose-700', desc: 'Chợ tốt cho người Việt' },
+      { name: 'Shopee', logo: 'https://cdn.simpleicons.org/shopee', color: 'from-orange-500 to-amber-600', desc: 'Sàn TMĐT phổ biến nhất Việt Nam', url: 'https://shopee.vn/' },
+      { name: 'Lazada', logo: 'https://www.google.com/s2/favicons?domain=lazada.vn&sz=128', color: 'from-blue-600 to-indigo-700', desc: 'Hệ thống mua sắm trực tuyến uy tín', url: 'https://www.lazada.vn/' },
+      { name: 'TikTok Shop', logo: 'https://www.tiktok.com/favicon.ico', color: 'from-slate-800 to-slate-950', desc: 'Xu hướng mua sắm video ngắn', url: 'https://www.tiktok.com/shop?lang=vi-VN' },
+      { name: 'Tiki', logo: 'https://tiki.vn/favicon.ico', color: 'from-sky-500 to-blue-600', desc: 'Giao hàng nhanh 2h chất lượng cao', url: 'https://tiki.vn/' },
+      { name: 'Sendo', logo: 'https://www.google.com/s2/favicons?domain=sendo.vn&sz=128', color: 'from-red-600 to-rose-700', desc: 'Chợ tốt cho người Việt', url: 'https://www.sendo.vn/' },
     ];
 
     const BANK_CONFIG = {
@@ -1634,7 +1634,12 @@
               {ECOM_PLATFORMS.map((p) => (
                 <div key={p.name} className="glass-neon-panel rounded-3xl p-6 space-y-4 hover:border-slate-700 transition">
                   <div className="flex items-center gap-3">
-                    <span className="text-3xl">{p.logo}</span>
+                    <img
+                      src={p.logo}
+                      alt={`${p.name} logo`}
+                      loading="lazy"
+                      className="w-10 h-10 rounded-xl bg-white object-contain p-1"
+                    />
                     <div>
                       <h3 className="font-bold text-white text-base">{p.name}</h3>
                       <span className="text-xs text-blue-200/70">{p.desc}</span>
@@ -1644,9 +1649,14 @@
                     <p>• Tỷ lệ hoa hồng trung bình: <strong className="text-emerald-400">8% - 15%</strong></p>
                     <p>• Hỗ trợ COD toàn quốc</p>
                   </div>
-                  <button className="w-full py-2.5 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-slate-800 text-xs font-bold transition">
-                    Xem Đơn Từ Sàn Này
-                  </button>
+                  <a
+                    href={p.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full py-2.5 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-slate-800 text-xs font-bold transition flex items-center justify-center gap-2"
+                  >
+                    Xem Đơn Từ Sàn Này <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
                 </div>
               ))}
             </div>
