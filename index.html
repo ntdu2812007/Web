@@ -1,0 +1,2229 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hệ Thống Quản Lý Đơn Hàng & Vận Hành Affiliate OMS</title>
+  <link rel="icon" type="image/png" href="img/logo-transparent.png" />
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            cyber: {
+              bg: '#040d25',
+              card: '#08173e',
+              input: '#061334',
+              border: '#1e293b',
+              accent: '#3b82f6',
+              purple: '#8b5cf6',
+              cyan: '#06b6d4',
+              emerald: '#10b981'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Fira Code', 'Consolas', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- React 18 & ReactDOM 18 -->
+  <script crossorigin src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
+  <!-- Supabase JS Client v2 (Cloud Database & Realtime Sync) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Babel Standalone -->
+  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.24.4/babel.min.js"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(5, 13, 36, 0.9); }
+    ::-webkit-scrollbar-thumb { background: rgba(59, 130, 246, 0.4); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(59, 130, 246, 0.7); }
+
+    /* Nền chung hệ thống & Khử nhòe chữ tuyệt đối */
+    body {
+      background-color: #040d25;
+      color: #ffffff;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      overflow-x: hidden;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+    }
+
+    /* Background chuẩn cho cả Login và Dashboard theo ảnh mẫu Analytics Background */
+    .bg-login-scene,
+    .bg-dashboard-scene {
+      background-image: radial-gradient(circle at 50% 20%, rgba(30, 58, 138, 0.25) 0%, rgba(4, 13, 37, 0.85) 100%),
+                        url('img/Futuristic Blue E-Commerce Analytics Background.png');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      background-repeat: no-repeat;
+    }
+
+    /* Khung phẳng sắc nét - Bỏ hoàn toàn hiệu ứng phát sáng trắng / không glow */
+    .glass-neon-panel {
+      background: #08173e;
+      border: 1px solid #1e293b;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+    }
+
+    .glass-neon-card {
+      background: #0a1c4a;
+      border: 1px solid #1e293b;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .glass-neon-input {
+      background: #061334;
+      border: 1px solid #1e293b;
+      color: #ffffff;
+      transition: all 0.2s ease;
+      font-size: 14px;
+    }
+    .glass-neon-input:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: none;
+      background: #081a44;
+    }
+
+    /* Nút gradient sắc nét - Không glow phát sáng */
+    .btn-neon-primary {
+      background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+      border: none;
+      transition: all 0.2s ease;
+    }
+    .btn-neon-primary:hover {
+      background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+      transform: translateY(-1px);
+    }
+
+    /* Tab active */
+    .tab-neon-active {
+      background: linear-gradient(135deg, #2563eb 0%, #6366f1 100%);
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(99, 102, 241, 0.4);
+    }
+    .tab-neon-inactive {
+      background: rgba(9, 23, 62, 0.85);
+      color: #93c5fd;
+      border: 1px solid #1e293b;
+      transition: all 0.2s ease;
+    }
+    .tab-neon-inactive:hover {
+      background: #112762;
+      color: #ffffff;
+      border-color: #334155;
+    }
+  </style>
+</head>
+<body class="min-h-screen text-slate-100 antialiased selection:bg-blue-600 selection:text-white">
+
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    // ========================================================
+    // SUPABASE CLOUD CONFIGURATION (TỰ ĐỘNG ĐỒNG BỘ ĐA THIẾT BỊ)
+    // ========================================================
+    const SUPABASE_URL = "https://fiuyvbxamddiivzjvdio.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_Q13khcwikoAPQhpGZGomMw_mcU3bb6r";
+    const supabase = (window.supabase && SUPABASE_URL) ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+
+    // --- HELPER FORMAT TIỀN TỆ ---
+    const formatVND = (amount) => {
+      return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount || 0);
+    };
+
+    // --- LOCAL STORAGE HELPERS (Giữ dữ liệu khi F5) ---
+    const loadStorage = (key, defaultVal) => {
+      try {
+        const item = localStorage.getItem('oms_' + key);
+        if (item) return JSON.parse(item);
+      } catch (e) {
+        console.warn(e);
+      }
+      return defaultVal;
+    };
+
+    const saveStorage = (key, val) => {
+      try {
+        localStorage.setItem('oms_' + key, JSON.stringify(val));
+      } catch (e) {
+        console.warn(e);
+      }
+    };
+
+    // --- UNIVERSAL LUCIDE ICON WRAPPER ---
+    const LucideIcon = ({ name, size = 20, className = '', ...props }) => {
+      const spanRef = useRef(null);
+      const kebab = name.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
+
+      useEffect(() => {
+        if (!spanRef.current) return;
+        if (window.lucide) {
+          const iconObj = window.lucide.icons && (window.lucide.icons[name] || window.lucide.icons[kebab]);
+          if (iconObj && typeof iconObj.toSvg === 'function') {
+            spanRef.current.innerHTML = iconObj.toSvg({ class: className, width: size, height: size });
+            return;
+          }
+          spanRef.current.innerHTML = '<i data-lucide="' + kebab + '"></i>';
+          window.lucide.createIcons({ root: spanRef.current });
+          const svg = spanRef.current.querySelector('svg');
+          if (svg) {
+            if (className) svg.setAttribute('class', className);
+            svg.setAttribute('width', size);
+            svg.setAttribute('height', size);
+          }
+        }
+      }, [name, size, className]);
+
+      return (
+        <span 
+          ref={spanRef} 
+          className={'inline-flex items-center justify-center ' + className} 
+          style={{ width: size, height: size, display: 'inline-flex', verticalAlign: 'middle' }}
+          {...props}
+        />
+      );
+    };
+
+    const iconNames = [
+      'Users', 'ShoppingBag', 'Wallet', 'History', 'Bell', 'LogOut', 'CheckCircle', 
+      'XCircle', 'PlusCircle', 'ArrowUpRight', 'ArrowDownLeft', 'Search', 'Filter', 
+      'ShieldCheck', 'RefreshCw', 'ShoppingCart', 'ExternalLink', 'DollarSign',
+      'TrendingUp', 'CreditCard', 'UserCheck', 'AlertCircle', 'Check', 'X', 'Key', 'Lock', 'Eye', 'EyeOff', 'Copy',
+      'User', 'LogIn', 'Layers', 'Box', 'BarChart3'
+    ];
+
+    const iconComponents = {};
+    iconNames.forEach(name => {
+      iconComponents[name] = (props) => <LucideIcon name={name} {...props} />;
+    });
+
+    const { 
+      Users, ShoppingBag, Wallet, History, Bell, LogOut, CheckCircle, 
+      XCircle, PlusCircle, ArrowUpRight, ArrowDownLeft, Search, Filter, 
+      ShieldCheck, RefreshCw, ShoppingCart, ExternalLink, DollarSign,
+      TrendingUp, CreditCard, UserCheck, AlertCircle, Check, X, Key, Lock, Eye, EyeOff, Copy,
+      User, LogIn, Layers, Box, BarChart3
+    } = iconComponents;
+
+    // --- MOCK DATA GENERATION (50 NV THEO ĐÚNG ĐỀ BÀI) ---
+    const generateMockStaff = () => {
+      const staffList = [];
+      for (let i = 1; i <= 50; i++) {
+        const padId = String(i).padStart(2, '0');
+        staffList.push({
+          id: 'NV' + padId,
+          name: 'Nhân viên ' + padId,
+          email: 'nv' + padId + '@system.com',
+          password: 'staff' + padId, // staff01 -> staff50
+          balance: 1000000 + (i * 150000) + (i % 3 * 25000),
+          totalCommission: 200000 + (i * 45000) + (i % 5 * 12000),
+          completedOrders: 2 + (i % 15)
+        });
+      }
+      return staffList;
+    };
+
+    const INITIAL_STAFF = generateMockStaff();
+
+    const INITIAL_ORDERS = [
+      {
+        id: 'DH-10021',
+        staffId: 'NV01',
+        productName: 'Áo Nam Premium Cotton 100%',
+        platform: 'Shopee',
+        orderValue: 500000,
+        codAmount: 350000,
+        commissionRate: 10,
+        commissionAmount: 50000,
+        status: 'PENDING',
+        imageUrl: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=150&auto=format&fit=crop&q=80',
+        createdAt: new Date(Date.now() - 3600000 * 2).toLocaleString('vi-VN')
+      },
+      {
+        id: 'DH-10022',
+        staffId: 'NV01',
+        productName: 'Tai nghe Bluetooth Pro Max',
+        platform: 'Lazada',
+        orderValue: 1200000,
+        codAmount: 1200000,
+        commissionRate: 8,
+        commissionAmount: 96000,
+        status: 'CONFIRMED',
+        imageUrl: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=150&auto=format&fit=crop&q=80',
+        createdAt: new Date(Date.now() - 3600000 * 24).toLocaleString('vi-VN')
+      },
+      {
+        id: 'DH-10023',
+        staffId: 'NV02',
+        productName: 'Bàn phím cơ Không Dây RGB',
+        platform: 'TikTok Shop',
+        orderValue: 850000,
+        codAmount: 850000,
+        commissionRate: 12,
+        commissionAmount: 102000,
+        status: 'PENDING',
+        imageUrl: 'https://images.unsplash.com/photo-1618384887929-16ec33fab9ef?w=150&auto=format&fit=crop&q=80',
+        createdAt: new Date(Date.now() - 3600000 * 4).toLocaleString('vi-VN')
+      }
+    ];
+
+    const INITIAL_TRANSACTIONS = [
+      {
+        id: 'TX-1001',
+        userId: 'NV01',
+        userName: 'Nhân viên 01',
+        type: 'COMMISSION',
+        amount: 96000,
+        note: 'Hoa hồng đơn hàng DH-10022 (Lazada)',
+        status: 'SUCCESS',
+        timestamp: new Date(Date.now() - 3600000 * 24).toLocaleString('vi-VN')
+      },
+      {
+        id: 'TX-1002',
+        userId: 'NV01',
+        userName: 'Nhân viên 01',
+        type: 'DEPOSIT',
+        amount: 1000000,
+        note: 'Nạp tiền ứng quỹ COD',
+        status: 'SUCCESS',
+        timestamp: new Date(Date.now() - 3600000 * 12).toLocaleString('vi-VN')
+      }
+    ];
+
+    const INITIAL_WITHDRAWALS = [
+      {
+        id: 'WD-501',
+        staffId: 'NV01',
+        staffName: 'Nhân viên 01',
+        bankName: 'MB Bank',
+        bankAccount: '198082200407',
+        accountName: 'NGUYEN DUC HUY',
+        amount: 500000,
+        status: 'PENDING',
+        createdAt: new Date(Date.now() - 3600000 * 3).toLocaleString('vi-VN')
+      }
+    ];
+
+    const ECOM_PLATFORMS = [
+      { name: 'Shopee', logo: '🛒', color: 'from-orange-500 to-amber-600', desc: 'Sàn TMĐT phổ biến nhất Việt Nam' },
+      { name: 'Lazada', logo: '🛍️', color: 'from-blue-600 to-indigo-700', desc: 'Hệ thống mua sắm trực tuyến uy tín' },
+      { name: 'TikTok Shop', logo: '🎵', color: 'from-slate-800 to-slate-950', desc: 'Xu hướng mua sắm video ngắn' },
+      { name: 'Tiki', logo: '📦', color: 'from-sky-500 to-blue-600', desc: 'Giao hàng nhanh 2h chất lượng cao' },
+      { name: 'Sendo', logo: '🏬', color: 'from-red-600 to-rose-700', desc: 'Chợ tốt cho người Việt' },
+    ];
+
+    const BANK_CONFIG = {
+      bankName: 'MB Bank (Ngân hàng Quân Đội)',
+      accountNumber: '198082200407',
+      accountHolder: 'NGUYEN DUC HUY',
+      transferSyntaxPrefix: 'NAP TIEN'
+    };
+
+    // ========================================================
+    // COMPONENT: MÀN HÌNH ĐĂNG NHẬP (KHỚP 100% ẢNH MẪU 562fa05d...)
+    // ========================================================
+    function LoginScreen({ staffList, onLoginSuccess, showToast }) {
+      const [loginForm, setLoginForm] = useState({ email: '', password: '' });
+      const [loginError, setLoginError] = useState('');
+      const [showPassword, setShowPassword] = useState(false);
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        setLoginError('');
+
+        const account = loginForm.email.trim();
+        const password = loginForm.password.trim();
+
+        // 1. Kiểm tra Admin
+        if (account.toLowerCase() === 'admin@system.com' && password === 'admin123') {
+          onLoginSuccess({
+            role: 'ADMIN',
+            id: 'ADMIN',
+            name: 'Quản trị viên',
+            email: 'admin@system.com'
+          });
+          showToast('Đăng nhập Quản Trị Viên thành công!');
+          return;
+        }
+
+        // 2. Kiểm tra Nhân viên
+        const foundStaff = staffList.find(
+          s => s.email.toLowerCase() === account.toLowerCase() || s.id.toLowerCase() === account.toLowerCase()
+        );
+
+        if (foundStaff) {
+          if (foundStaff.password === password) {
+            onLoginSuccess({
+              role: 'STAFF',
+              id: foundStaff.id,
+              name: foundStaff.name,
+              email: foundStaff.email,
+              balance: foundStaff.balance,
+              totalCommission: foundStaff.totalCommission,
+              completedOrders: foundStaff.completedOrders
+            });
+            showToast('Đăng nhập thành công! Chào ' + foundStaff.name);
+            return;
+          } else {
+            setLoginError('Mật khẩu nhân viên không chính xác!');
+            return;
+          }
+        }
+
+        setLoginError('Tài khoản hoặc mã nhân viên không tồn tại trên hệ thống!');
+      };
+
+      return (
+        <div className="min-h-screen bg-login-scene flex items-center justify-center p-4 sm:p-6 lg:p-8 relative">
+          {/* Lớp phủ màu sẫm nhẹ để card nổi bật */}
+          <div className="absolute inset-0 bg-[#040d25]/60 pointer-events-none"></div>
+
+          {/* KHUNG CARD CHÍNH - BỎ PHÁT SÁNG TRẮNG, VIỀN CHÌM TINH TẾ */}
+          <div className="relative z-10 w-full max-w-4xl rounded-[32px] glass-neon-panel overflow-hidden p-6 sm:p-10 lg:p-12 shadow-2xl shadow-black/60 border border-slate-800">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
+              
+              {/* CỘT TRÁI: HÌNH ẢNH 3D E-COMMERCE LAPTOP SCENE */}
+              <div className="lg:col-span-6 flex items-center justify-center">
+                <div className="relative w-full max-w-[380px] aspect-square rounded-3xl overflow-hidden shadow-lg shadow-black/50 border border-slate-800">
+                  <img 
+                    src="img/Futuristic Blue E-Commerce Laptop Scene.png" 
+                    alt="Laptop Scene" 
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-tr from-[#06143d]/30 via-transparent to-transparent pointer-events-none"></div>
+                </div>
+              </div>
+
+              {/* CỘT PHẢI: FORM ĐĂNG NHẬP TINH GỌN */}
+              <div className="lg:col-span-6 flex flex-col justify-center">
+                {/* Logo & Header */}
+                <div className="text-center mb-6">
+                  <div className="inline-flex items-center justify-center w-20 h-20 mb-2">
+                    <img 
+                      src="img/logo-transparent.png" 
+                      alt="OMS Logo" 
+                      className="w-full h-full object-contain filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.4)]" 
+                    />
+                  </div>
+                  <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-wide">
+                    Hệ Thống Đơn Hàng & Hoa Hồng
+                  </h1>
+                  <p className="text-blue-300 text-xs sm:text-sm mt-1.5 font-medium">
+                    E-Commerce OMS & Affiliate Management
+                  </p>
+                </div>
+
+                {loginError && (
+                  <div className="mb-4 p-3.5 bg-rose-500/20 border border-rose-500/40 rounded-xl text-rose-200 text-xs sm:text-sm flex items-center gap-2.5">
+                    <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+                    <span>{loginError}</span>
+                  </div>
+                )}
+
+                <form onSubmit={handleSubmit} className="space-y-5">
+                  {/* Ô Tài khoản */}
+                  <div>
+                    <label className="block text-sm font-bold text-white mb-2">
+                      Tài Khoản :
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-blue-400">
+                        <User className="w-4 h-4" />
+                      </div>
+                      <input
+                        type="text"
+                        required
+                        value={loginForm.email}
+                        onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
+                        placeholder="Nhập tài khoản hoặc mã nhân viên..."
+                        className="w-full glass-neon-input rounded-xl pl-10 pr-4 py-3 text-white placeholder-slate-400 text-sm font-medium"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Ô Mật khẩu */}
+                  <div>
+                    <label className="block text-sm font-bold text-white mb-2">
+                      Mật Khẩu :
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-blue-400">
+                        <Lock className="w-4 h-4" />
+                      </div>
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        required
+                        value={loginForm.password}
+                        onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
+                        placeholder="Nhập mật khẩu..."
+                        className="w-full glass-neon-input rounded-xl pl-10 pr-11 py-3 text-white placeholder-slate-400 text-sm font-mono"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-blue-300 hover:text-white"
+                      >
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Nút Đăng Nhập Hệ Thống */}
+                  <button
+                    type="submit"
+                    className="w-full btn-neon-primary text-white font-bold py-3.5 rounded-xl text-sm flex items-center justify-center gap-2 mt-4 tracking-wide cursor-pointer"
+                  >
+                    <LogIn className="w-4 h-4" />
+                    Đăng nhập Hệ thống
+                  </button>
+                </form>
+
+              </div>
+
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ========================================================
+    // COMPONENT: ADMIN MODULE (KHỚP 100% ẢNH MẪU DARK-BLUE & NEON OMS)
+    // ========================================================
+    function AdminView({
+      staffList,
+      setStaffList,
+      orders,
+      setOrders,
+      transactions,
+      setTransactions,
+      withdrawRequests,
+      setWithdrawRequests,
+      showToast
+    }) {
+      const [adminTab, setAdminTab] = useState('create-order');
+
+      // Form tạo đơn hàng mới
+      const [orderForm, setOrderForm] = useState({
+        customId: '',
+        staffId: 'NV01',
+        productName: '',
+        platform: 'Shopee',
+        orderValue: '',
+        codAmount: '',
+        commissionRate: 10
+      });
+
+      // Modals
+      const [adjustModal, setAdjustModal] = useState(null);
+      const [adjustAmount, setAdjustAmount] = useState('');
+      const [adjustType, setAdjustType] = useState('ADD');
+      const [adjustReason, setAdjustReason] = useState('');
+
+      const [passwordModal, setPasswordModal] = useState(null);
+      const [newPassword, setNewPassword] = useState('');
+
+      const [staffSearch, setStaffSearch] = useState('');
+      const [logFilter, setLogFilter] = useState('ALL');
+
+      const pendingWithdrawalsCount = withdrawRequests.filter(w => w.status === 'PENDING').length;
+
+      const handleGenerateOrderId = () => {
+        const randNum = Math.floor(10000 + Math.random() * 90000);
+        setOrderForm({ ...orderForm, customId: 'DH-' + randNum });
+      };
+
+      // 1. Tạo đơn hàng mới
+      const handleCreateOrder = (e) => {
+        e.preventDefault();
+        if (!orderForm.productName || !orderForm.orderValue) {
+          showToast('Vui lòng điền tên sản phẩm và giá trị đơn hàng!', 'error');
+          return;
+        }
+
+        let orderId = orderForm.customId.trim();
+        if (!orderId) {
+          orderId = 'DH-' + Math.floor(10000 + Math.random() * 90000);
+        }
+
+        // Kiểm tra trùng mã đơn hàng
+        if (orders.some(o => o.id.toLowerCase() === orderId.toLowerCase())) {
+          showToast('Mã đơn ' + orderId + ' đã tồn tại! Vui lòng nhập mã khác.', 'error');
+          return;
+        }
+
+        const val = parseFloat(orderForm.orderValue) || 0;
+        const cod = parseFloat(orderForm.codAmount) || 0;
+        const rate = parseFloat(orderForm.commissionRate) || 0;
+        const comm = Math.round(val * (rate / 100));
+
+        const createdOrder = {
+          id: orderId,
+          staffId: orderForm.staffId,
+          productName: orderForm.productName.trim(),
+          platform: orderForm.platform,
+          orderValue: val,
+          codAmount: cod,
+          commissionRate: rate,
+          commissionAmount: comm,
+          status: 'PENDING',
+          createdAt: new Date().toLocaleString('vi-VN')
+        };
+
+        setOrders([createdOrder, ...orders]);
+        showToast('Đã tạo thành công đơn ' + orderId + ' cho ' + orderForm.staffId + '!');
+
+        // Ghi vào Supabase Database
+        if (supabase) {
+          supabase.from('orders').insert([{
+            id: createdOrder.id,
+            staff_id: createdOrder.staffId,
+            product_name: createdOrder.productName,
+            platform: createdOrder.platform,
+            order_value: createdOrder.orderValue,
+            cod_amount: createdOrder.codAmount,
+            commission_rate: createdOrder.commissionRate,
+            commission_amount: createdOrder.commissionAmount,
+            status: createdOrder.status,
+            created_at: new Date().toISOString()
+          }]).then(({ error }) => {
+            if (error) console.warn("Supabase insert order error:", error);
+          });
+        }
+
+        setOrderForm({
+          customId: '',
+          staffId: orderForm.staffId,
+          productName: '',
+          platform: 'Shopee',
+          orderValue: '',
+          codAmount: '',
+          commissionRate: 10
+        });
+      };
+
+      // 2. Điều chỉnh số dư thủ công
+      const handleSaveAdjustment = (e) => {
+        e.preventDefault();
+        if (!adjustModal || !adjustAmount || isNaN(adjustAmount)) return;
+        const val = parseFloat(adjustAmount);
+        const delta = adjustType === 'ADD' ? val : -val;
+
+        setStaffList(prev => prev.map(s => {
+          if (s.id === adjustModal.id) {
+            return { ...s, balance: Math.max(0, s.balance + delta) };
+          }
+          return s;
+        }));
+
+        const newTx = {
+          id: 'TX-' + Math.floor(1000 + Math.random() * 9000),
+          userId: adjustModal.id,
+          userName: adjustModal.name,
+          type: 'ADJUSTMENT',
+          amount: delta,
+          note: adjustReason || ('Admin ' + (adjustType === 'ADD' ? 'cộng' : 'trừ') + ' tiền thủ công'),
+          status: 'SUCCESS',
+          timestamp: new Date().toLocaleString('vi-VN')
+        };
+        setTransactions([newTx, ...transactions]);
+
+        showToast('Đã ' + (adjustType === 'ADD' ? 'cộng' : 'trừ') + ' ' + formatVND(val) + ' cho ' + adjustModal.name);
+        
+        // Cập nhật Supabase
+        if (supabase) {
+          const newBal = Math.max(0, adjustModal.balance + delta);
+          supabase.from('staff').update({ balance: newBal }).eq('id', adjustModal.id).then();
+          supabase.from('transactions').insert([{
+            id: newTx.id,
+            user_id: newTx.userId,
+            user_name: newTx.userName,
+            type: newTx.type,
+            amount: newTx.amount,
+            note: newTx.note,
+            status: newTx.status,
+            timestamp: new Date().toISOString()
+          }]).then();
+        }
+
+        setAdjustModal(null);
+        setAdjustAmount('');
+        setAdjustReason('');
+      };
+
+      // 3. Đổi mật khẩu nhân viên
+      const handleSavePassword = (e) => {
+        e.preventDefault();
+        if (!passwordModal || !newPassword.trim()) return;
+
+        setStaffList(prev => prev.map(s => {
+          if (s.id === passwordModal.id) {
+            return { ...s, password: newPassword.trim() };
+          }
+          return s;
+        }));
+
+        showToast('Đã đổi mật khẩu cho ' + passwordModal.id + ' thành công!');
+        if (supabase) {
+          supabase.from('staff').update({ password: newPassword.trim() }).eq('id', passwordModal.id).then();
+        }
+        setPasswordModal(null);
+        setNewPassword('');
+      };
+
+      // 4. Duyệt yêu cầu rút tiền (Tiền trừ trực tiếp vào hệ thống)
+      const handleApproveWithdraw = (reqId) => {
+        const targetReq = withdrawRequests.find(r => r.id === reqId);
+        if (!targetReq) return;
+
+        setStaffList(prev => prev.map(s => {
+          if (s.id === targetReq.staffId) {
+            return { ...s, balance: Math.max(0, s.balance - targetReq.amount) };
+          }
+          return s;
+        }));
+
+        setWithdrawRequests(prev => prev.map(r => r.id === reqId ? { ...r, status: 'APPROVED' } : r));
+
+        const newTx = {
+          id: 'TX-' + Math.floor(1000 + Math.random() * 9000),
+          userId: targetReq.staffId,
+          userName: targetReq.staffName,
+          type: 'WITHDRAW',
+          amount: -targetReq.amount,
+          note: 'Duyệt chi tiền về ' + targetReq.bankName + ' - ' + targetReq.bankAccount + ' (' + targetReq.accountName + ')',
+          status: 'SUCCESS',
+          timestamp: new Date().toLocaleString('vi-VN')
+        };
+        setTransactions([newTx, ...transactions]);
+
+        showToast('Đã duyệt chi tiền thành công đơn ' + targetReq.id + '!');
+
+        if (supabase) {
+          supabase.from('withdraw_requests').update({ status: 'APPROVED', processed_at: new Date().toISOString() }).eq('id', reqId).then();
+          const targetStaff = staffList.find(s => s.id === targetReq.staffId);
+          if (targetStaff) {
+            supabase.from('staff').update({ balance: Math.max(0, targetStaff.balance - targetReq.amount) }).eq('id', targetReq.staffId).then();
+          }
+          supabase.from('transactions').insert([{
+            id: newTx.id,
+            user_id: newTx.userId,
+            user_name: newTx.userName,
+            type: newTx.type,
+            amount: newTx.amount,
+            note: newTx.note,
+            status: newTx.status,
+            timestamp: new Date().toISOString()
+          }]).then();
+        }
+      };
+
+      // 5. Từ chối rút tiền (Hoàn tiền lại Ví NV theo đề bài)
+      const handleRejectWithdraw = (reqId) => {
+        const targetReq = withdrawRequests.find(r => r.id === reqId);
+        if (!targetReq) return;
+
+        setWithdrawRequests(prev => prev.map(r => r.id === reqId ? { ...r, status: 'REJECTED' } : r));
+
+        const newTx = {
+          id: 'TX-' + Math.floor(1000 + Math.random() * 9000),
+          userId: targetReq.staffId,
+          userName: targetReq.staffName,
+          type: 'ADJUSTMENT',
+          amount: 0,
+          note: 'Từ chối lệnh rút tiền ' + targetReq.id + ' (Giữ nguyên số dư)',
+          status: 'REJECTED',
+          timestamp: new Date().toLocaleString('vi-VN')
+        };
+        setTransactions([newTx, ...transactions]);
+
+        showToast('Đã từ chối lệnh rút tiền ' + reqId, 'error');
+
+        if (supabase) {
+          supabase.from('withdraw_requests').update({ status: 'REJECTED', processed_at: new Date().toISOString() }).eq('id', reqId).then();
+          supabase.from('transactions').insert([{
+            id: newTx.id,
+            user_id: newTx.userId,
+            user_name: newTx.userName,
+            type: newTx.type,
+            amount: newTx.amount,
+            note: newTx.note,
+            status: newTx.status,
+            timestamp: new Date().toISOString()
+          }]).then();
+        }
+      };
+
+      const filteredStaff = staffList.filter(s =>
+        s.name.toLowerCase().includes(staffSearch.toLowerCase()) ||
+        s.id.toLowerCase().includes(staffSearch.toLowerCase()) ||
+        s.email.toLowerCase().includes(staffSearch.toLowerCase())
+      );
+
+      const filteredLogs = transactions.filter(t => logFilter === 'ALL' || t.type === logFilter);
+
+      const calculatedComm = Math.round((parseFloat(orderForm.orderValue) || 0) * (orderForm.commissionRate / 100));
+
+      return (
+        <div className="space-y-6">
+          {/* TABS HEADER CHUẨN MẪU (PILL BUTTONS CỰC ĐẸP) */}
+          <div className="flex flex-wrap items-center gap-3 pb-2">
+            <button
+              onClick={() => setAdminTab('create-order')}
+              className={'flex items-center gap-2.5 px-5 py-3 rounded-2xl text-xs sm:text-sm font-bold transition ' + (
+                adminTab === 'create-order' ? 'tab-neon-active' : 'tab-neon-inactive'
+              )}
+            >
+              <PlusCircle className="w-4 h-4" />
+              Tạo Đơn Hàng Mới
+            </button>
+
+            <button
+              onClick={() => setAdminTab('manage-staff')}
+              className={'flex items-center gap-2.5 px-5 py-3 rounded-2xl text-xs sm:text-sm font-bold transition ' + (
+                adminTab === 'manage-staff' ? 'tab-neon-active' : 'tab-neon-inactive'
+              )}
+            >
+              <Users className="w-4 h-4" />
+              Quản Lý 50 Nhân Viên & Mật Khẩu
+            </button>
+
+            <button
+              onClick={() => setAdminTab('withdrawals')}
+              className={'relative flex items-center gap-2.5 px-5 py-3 rounded-2xl text-xs sm:text-sm font-bold transition ' + (
+                adminTab === 'withdrawals' ? 'tab-neon-active' : 'tab-neon-inactive'
+              )}
+            >
+              <Bell className="w-4 h-4" />
+              Duyệt Rút Tiền
+              {pendingWithdrawalsCount > 0 && (
+                <span className="bg-rose-500 text-white text-[11px] px-2 py-0.5 rounded-full font-extrabold ml-1 shadow-md shadow-black/40">
+                  {pendingWithdrawalsCount}
+                </span>
+              )}
+            </button>
+
+            <button
+              onClick={() => setAdminTab('history')}
+              className={'flex items-center gap-2.5 px-5 py-3 rounded-2xl text-xs sm:text-sm font-bold transition ' + (
+                adminTab === 'history' ? 'tab-neon-active' : 'tab-neon-inactive'
+              )}
+            >
+              <History className="w-4 h-4" />
+              Audit Log Toàn Hệ Thống
+            </button>
+          </div>
+
+          {/* TAB 1: TẠO ĐƠN HÀNG (KHỚP 100% ẢNH NEON OMS ORDER MANAGEMENT DASHBOARD) */}
+          {adminTab === 'create-order' && (
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              
+              {/* CỘT TRÁI: FORM KHỞI TẠO ĐƠN HÀNG MỚI */}
+              <div className="lg:col-span-8 glass-neon-panel rounded-3xl p-6 sm:p-8 space-y-6">
+                <div className="flex items-center gap-3 border-b border-slate-800 pb-4">
+                  <div className="w-10 h-10 rounded-xl bg-blue-500/20 border border-slate-800 flex items-center justify-center text-blue-400 shadow-md shadow-black/30">
+                    <PlusCircle className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg sm:text-xl font-extrabold text-white tracking-wide">
+                      Khởi Tạo Đơn Hàng Mới & Phân Bổ Hoa Hồng
+                    </h2>
+                    <p className="text-xs text-blue-300/70">Nhập thông số đơn hàng và phân công nhân viên thụ hưởng hoa hồng</p>
+                  </div>
+                </div>
+
+                <form onSubmit={handleCreateOrder} className="space-y-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* 1. Mã đơn hàng */}
+                    <div>
+                      <div className="flex justify-between items-center mb-1.5">
+                        <label className="text-xs font-bold text-blue-200 uppercase flex items-center gap-1.5">
+                          <span>📦</span> 1. MÃ ĐƠN HÀNG (VD: DH-10029)
+                        </label>
+                        <button
+                          type="button"
+                          onClick={handleGenerateOrderId}
+                          className="text-[11px] text-cyan-400 hover:text-cyan-300 flex items-center gap-1 font-semibold"
+                        >
+                          <RefreshCw className="w-3 h-3" /> Sinh mã tự động
+                        </button>
+                      </div>
+                      <input
+                        type="text"
+                        placeholder="VD: DH-10029 (để trống tự tạo)"
+                        value={orderForm.customId}
+                        onChange={(e) => setOrderForm({ ...orderForm, customId: e.target.value })}
+                        className="w-full glass-neon-input rounded-xl px-4 py-3 text-white placeholder-slate-400 text-sm font-mono font-medium"
+                      />
+                    </div>
+
+                    {/* 2. Nhân viên thụ hưởng */}
+                    <div>
+                      <label className="block text-xs font-bold text-blue-200 uppercase mb-1.5 flex items-center gap-1.5">
+                        <span>👤</span> 2. NHÂN VIÊN THỤ HƯỞNG (50 NV)
+                      </label>
+                      <select
+                        value={orderForm.staffId}
+                        onChange={(e) => setOrderForm({ ...orderForm, staffId: e.target.value })}
+                        className="w-full glass-neon-input rounded-xl px-4 py-3 text-white text-sm font-medium"
+                      >
+                        {staffList.map((s) => (
+                          <option key={s.id} value={s.id} className="bg-[#071333] text-white">
+                            {s.id} - {s.name} (Ví: {formatVND(s.balance)})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* 3. Sàn TMĐT */}
+                    <div>
+                      <label className="block text-xs font-bold text-blue-200 uppercase mb-1.5 flex items-center gap-1.5">
+                        <span>🛍️</span> 3. SÀN THƯƠNG MẠI ĐIỆN TỬ
+                      </label>
+                      <select
+                        value={orderForm.platform}
+                        onChange={(e) => setOrderForm({ ...orderForm, platform: e.target.value })}
+                        className="w-full glass-neon-input rounded-xl px-4 py-3 text-white text-sm font-medium"
+                      >
+                        {ECOM_PLATFORMS.map((p) => (
+                          <option key={p.name} value={p.name} className="bg-[#071333] text-white">
+                            {p.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Tên sản phẩm */}
+                    <div>
+                      <label className="block text-xs font-bold text-blue-200 uppercase mb-1.5 flex items-center gap-1.5">
+                        <span>📱</span> TÊN SẢN PHẨM ĐƠN HÀNG
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="VD: Tai nghe Bluetooth Pro Max"
+                        value={orderForm.productName}
+                        onChange={(e) => setOrderForm({ ...orderForm, productName: e.target.value })}
+                        className="w-full glass-neon-input rounded-xl px-4 py-3 text-white placeholder-slate-400 text-sm font-medium"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {/* 4. Giá trị đơn */}
+                    <div>
+                      <label className="block text-xs font-bold text-blue-200 uppercase mb-1.5 flex items-center gap-1.5">
+                        <span>💰</span> 4. GIÁ TRỊ ĐƠN HÀNG (VNĐ)
+                      </label>
+                      <input
+                        type="number"
+                        required
+                        min="1000"
+                        placeholder="VD: 2000000"
+                        value={orderForm.orderValue}
+                        onChange={(e) => setOrderForm({ ...orderForm, orderValue: e.target.value })}
+                        className="w-full glass-neon-input rounded-xl px-4 py-3 text-white placeholder-slate-400 text-sm font-mono font-semibold"
+                      />
+                    </div>
+
+                    {/* 5. Tiền COD */}
+                    <div>
+                      <label className="block text-xs font-bold text-blue-200 uppercase mb-1.5 flex items-center gap-1.5">
+                        <span>🛡️</span> 5. TIỀN COD THU HỘ (VNĐ)
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        placeholder="VD: 1500000"
+                        value={orderForm.codAmount}
+                        onChange={(e) => setOrderForm({ ...orderForm, codAmount: e.target.value })}
+                        className="w-full glass-neon-input rounded-xl px-4 py-3 text-white placeholder-slate-400 text-sm font-mono font-semibold"
+                      />
+                    </div>
+
+                    {/* 6. % Hoa hồng */}
+                    <div>
+                      <label className="block text-xs font-bold text-blue-200 uppercase mb-1.5 flex items-center gap-1.5">
+                        <span>📈</span> % HOA HỒNG
+                      </label>
+                      <input
+                        type="number"
+                        required
+                        min="1"
+                        max="100"
+                        value={orderForm.commissionRate}
+                        onChange={(e) => setOrderForm({ ...orderForm, commissionRate: parseFloat(e.target.value) || 0 })}
+                        className="w-full glass-neon-input rounded-xl px-4 py-3 text-white text-sm font-mono font-bold"
+                      />
+                    </div>
+                  </div>
+
+                  {/* CÔNG THỨC HOA HỒNG THEO ĐỀ BÀI (KHỐI XANH SẪM ĐẸP MẮT) */}
+                  <div className="p-4 rounded-2xl bg-[#061439] border border-slate-800 flex flex-wrap items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2.5 rounded-xl bg-blue-500/20 text-blue-400 border border-slate-800">
+                        <DollarSign className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <span className="text-xs text-blue-300/80 block font-semibold">Công thức tính hoa hồng đề bài:</span>
+                        <span className="text-xs text-blue-200 font-mono">
+                          Tiền Hoa Hồng = Giá trị đơn (<strong className="text-white">{formatVND(parseFloat(orderForm.orderValue) || 0)}</strong>) × (<strong className="text-cyan-300">{orderForm.commissionRate}</strong> / 100)
+                        </span>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-xs text-emerald-400 font-bold block">Hoa hồng NV sẽ nhận:</span>
+                      <span className="text-2xl font-extrabold text-emerald-400">
+                        {formatVND(calculatedComm)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Nút Submit Tạo Đơn */}
+                  <button
+                    type="submit"
+                    className="w-full btn-neon-primary text-white font-extrabold py-4 rounded-2xl text-sm flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <PlusCircle className="w-5 h-5" />
+                    Khởi Tạo Đơn Hàng & Phân Công Cho Nhân Viên
+                  </button>
+                </form>
+              </div>
+
+              {/* CỘT PHẢI: ĐƠN HÀNG GẦN ĐÂY (CHUẨN ẢNH NEON OMS DASHBOARD) */}
+              <div className="lg:col-span-4 glass-neon-panel rounded-3xl p-6 sm:p-7 space-y-5">
+                <div className="flex items-center gap-2.5 border-b border-slate-800 pb-4">
+                  <div className="p-2 rounded-xl bg-indigo-500/20 text-indigo-400 border border-slate-800">
+                    <ShoppingBag className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-base sm:text-lg font-bold text-white">
+                      Đơn Hàng Gần Đây ({orders.length})
+                    </h3>
+                    <p className="text-xs text-blue-300/70">Theo dõi trạng thái xác nhận</p>
+                  </div>
+                </div>
+
+                <div className="space-y-3.5 max-h-[580px] overflow-y-auto pr-1">
+                  {orders.map((ord) => (
+                    <div 
+                      key={ord.id} 
+                      className="glass-neon-card p-4 rounded-2xl space-y-3 hover:border-slate-700 transition relative group"
+                    >
+                      <div className="flex items-start gap-3">
+                        {/* Thumbnail ảnh sản phẩm */}
+                        <div className="w-14 h-14 rounded-xl bg-[#091b4c] border border-slate-800 overflow-hidden shrink-0 flex items-center justify-center">
+                          {ord.imageUrl ? (
+                            <img src={ord.imageUrl} alt={ord.productName} className="w-full h-full object-cover" />
+                          ) : (
+                            <Box className="w-6 h-6 text-blue-400" />
+                          )}
+                        </div>
+
+                        {/* Nội dung đơn */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex justify-between items-center mb-1">
+                            <span className="font-mono font-bold text-cyan-400 text-xs tracking-wider">{ord.id}</span>
+                            <span className={'px-2.5 py-0.5 rounded-full font-bold text-[10px] ' + (
+                              ord.status === 'CONFIRMED'
+                                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-sm shadow-black/20'
+                                : 'bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-sm shadow-black/20'
+                            )}>
+                              {ord.status === 'CONFIRMED' ? '✓ Đã xác nhận' : '⏳ Chờ NV nhận'}
+                            </span>
+                          </div>
+
+                          <h4 className="font-semibold text-white text-xs truncate leading-snug">
+                            {ord.productName}
+                          </h4>
+
+                          <div className="flex justify-between items-center text-[11px] text-blue-200/70 mt-1">
+                            <span>NV: <strong className="text-white">{ord.staffId}</strong> | Sàn: {ord.platform}</span>
+                            <span className="text-slate-300">Giá: {formatVND(ord.orderValue)}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="pt-2 border-t border-slate-800 flex justify-between items-center text-xs">
+                        <span className="text-cyan-300 font-medium">📈 Hoa hồng ({ord.commissionRate}%):</span>
+                        <span className="font-bold text-emerald-400">
+                          +{formatVND(ord.commissionAmount)}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+            </div>
+          )}
+
+          {/* TAB 2: QUẢN LÝ 50 NHÂN VIÊN (KHỚP 100% ẢNH DARK-BLUE OMS ADMIN DASHBOARD) */}
+          {adminTab === 'manage-staff' && (
+            <div className="glass-neon-panel rounded-3xl p-6 sm:p-8 space-y-6">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-800 pb-5">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl bg-indigo-600/25 border border-slate-800 flex items-center justify-center text-indigo-300 shadow-md shadow-black/30">
+                    <Users className="w-7 h-7" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-extrabold text-white tracking-wide">
+                      Danh Sách 50 Nhân Viên & Quản Lý Ví COD
+                    </h2>
+                    <p className="text-xs text-blue-200/70 mt-0.5">
+                      Theo dõi số dư ví, tổng hoa hồng tích lũy, reset mật khẩu và điều chỉnh số dư đối soát
+                    </p>
+                  </div>
+                </div>
+
+                {/* Thanh Search bo tròn chuẩn mẫu */}
+                <div className="relative w-full md:w-80">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-blue-400/70">
+                    <Search className="w-4 h-4" />
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Tìm theo Mã NV, Tên, Email..."
+                    value={staffSearch}
+                    onChange={(e) => setStaffSearch(e.target.value)}
+                    className="w-full glass-neon-input rounded-full pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-400"
+                  />
+                </div>
+              </div>
+
+              {/* BẢNG 50 NHÂN VIÊN CHUẨN ĐỒ HỌA NEON */}
+              <div className="overflow-x-auto rounded-2xl border border-slate-800">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-[#091e52] text-blue-200 uppercase font-extrabold tracking-wider border-b border-slate-800">
+                    <tr>
+                      <th className="p-3.5">MÃ NV</th>
+                      <th className="p-3.5">HỌ TÊN</th>
+                      <th className="p-3.5">EMAIL</th>
+                      <th className="p-3.5">MẬT KHẨU</th>
+                      <th className="p-3.5 text-right">SỐ DƯ VÍ COD</th>
+                      <th className="p-3.5 text-right">HOA HỒNG TÍCH LŨY</th>
+                      <th className="p-3.5 text-center">ĐƠN ĐÃ XONG</th>
+                      <th className="p-3.5 text-center">THAO TÁC ADMIN</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800 font-medium">
+                    {filteredStaff.map((staff) => (
+                      <tr key={staff.id} className="hover:bg-blue-600/10 transition">
+                        <td className="p-3.5 font-mono font-bold text-cyan-400 text-sm tracking-wide">{staff.id}</td>
+                        <td className="p-3.5 font-semibold text-white">{staff.name}</td>
+                        <td className="p-3.5 text-blue-200/70 font-mono text-[11px]">{staff.email}</td>
+                        <td className="p-3.5 font-mono font-bold text-amber-300 bg-amber-500/10 px-2 rounded">{staff.password}</td>
+                        <td className="p-3.5 text-right font-mono font-extrabold text-emerald-400 text-sm">
+                          {formatVND(staff.balance)}
+                        </td>
+                        <td className="p-3.5 text-right font-mono font-extrabold text-fuchsia-400 text-sm">
+                          {formatVND(staff.totalCommission)}
+                        </td>
+                        <td className="p-3.5 text-center font-bold text-slate-200">{staff.completedOrders}</td>
+                        <td className="p-3.5">
+                          <div className="flex items-center justify-center gap-2">
+                            <button
+                              onClick={() => { setAdjustModal(staff); setAdjustAmount(''); setAdjustReason(''); }}
+                              className="px-3 py-1.5 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 rounded-xl border border-emerald-500/40 transition text-xs font-bold flex items-center gap-1 shadow-sm shadow-black/20"
+                              title="Nạp / Trừ tiền thủ công"
+                            >
+                              <DollarSign className="w-3.5 h-3.5" /> $ Tiền
+                            </button>
+                            <button
+                              onClick={() => { setPasswordModal(staff); setNewPassword(''); }}
+                              className="px-3 py-1.5 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 rounded-xl border border-purple-500/40 transition text-xs font-bold flex items-center gap-1 shadow-sm shadow-black/20"
+                              title="Đổi mật khẩu"
+                            >
+                              <Key className="w-3.5 h-3.5" /> 🔑 Đổi Pass
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 3: DUYỆT RÚT TIỀN */}
+          {adminTab === 'withdrawals' && (
+            <div className="glass-neon-panel rounded-3xl p-6 sm:p-8 space-y-6">
+              <div className="border-b border-slate-800 pb-4">
+                <h2 className="text-xl font-extrabold text-white flex items-center gap-2.5">
+                  <Bell className="text-amber-400 w-6 h-6" />
+                  Xét Duyệt Yêu Cầu Rút Tiền Hoa Hồng
+                </h2>
+                <p className="text-xs text-blue-200/70 mt-1">
+                  Admin bấm <strong>[Duyệt]</strong> để xác nhận chi tiền (trừ hệ thống), hoặc <strong>[Từ chối]</strong> để hoàn tiền lại vào Ví của Nhân viên.
+                </p>
+              </div>
+
+              <div className="overflow-x-auto rounded-2xl border border-slate-800">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-[#091e52] text-blue-200 uppercase font-extrabold border-b border-slate-800">
+                    <tr>
+                      <th className="p-3.5">Mã Lệnh</th>
+                      <th className="p-3.5">Nhân Viên</th>
+                      <th className="p-3.5">Thông Tin Ngân Hàng</th>
+                      <th className="p-3.5 text-right">Số Tiền Rút</th>
+                      <th className="p-3.5 text-center">Thời Gian Tạo</th>
+                      <th className="p-3.5 text-center">Hành Động</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800">
+                    {withdrawRequests.filter(r => r.status === 'PENDING').length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="p-8 text-center text-blue-300/60 font-medium">
+                          Hiện tại không có yêu cầu rút tiền nào đang chờ duyệt.
+                        </td>
+                      </tr>
+                    ) : (
+                      withdrawRequests.filter(r => r.status === 'PENDING').map((req) => (
+                        <tr key={req.id} className="hover:bg-blue-600/10 transition">
+                          <td className="p-3.5 font-mono font-bold text-amber-400 text-sm">{req.id}</td>
+                          <td className="p-3.5">
+                            <div className="font-bold text-white text-sm">{req.staffName}</div>
+                            <div className="text-[11px] text-cyan-400 font-mono">{req.staffId}</div>
+                          </td>
+                          <td className="p-3.5">
+                            <div className="font-semibold text-slate-100">{req.bankName}</div>
+                            <div className="text-[11px] text-blue-200/80">STK: <span className="font-mono font-bold text-emerald-400">{req.bankAccount}</span></div>
+                            <div className="text-[11px] text-slate-400 font-mono">Chủ TK: {req.accountName}</div>
+                          </td>
+                          <td className="p-3.5 text-right font-mono font-extrabold text-amber-400 text-base">
+                            {formatVND(req.amount)}
+                          </td>
+                          <td className="p-3.5 text-center text-blue-200/70">{req.createdAt}</td>
+                          <td className="p-3.5 text-center">
+                            <div className="flex items-center justify-center gap-2">
+                              <button
+                                onClick={() => handleApproveWithdraw(req.id)}
+                                className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl transition font-bold text-xs flex items-center gap-1 shadow-md shadow-black/30 cursor-pointer"
+                              >
+                                <Check className="w-4 h-4" /> Duyệt
+                              </button>
+                              <button
+                                onClick={() => handleRejectWithdraw(req.id)}
+                                className="px-3.5 py-2 bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 text-rose-300 rounded-xl transition font-bold text-xs flex items-center gap-1 cursor-pointer"
+                              >
+                                <X className="w-4 h-4" /> Từ chối
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 4: AUDIT LOG */}
+          {adminTab === 'history' && (
+            <div className="glass-neon-panel rounded-3xl p-6 sm:p-8 space-y-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-800 pb-4">
+                <div>
+                  <h2 className="text-xl font-extrabold text-white flex items-center gap-2.5">
+                    <History className="text-cyan-400 w-6 h-6" />
+                    Audit Log - Lịch Sử Giao Dịch Toàn Hệ Thống
+                  </h2>
+                  <p className="text-xs text-blue-200/70 mt-1">
+                    Ghi nhận biến động tài chính của cả 50 nhân viên theo thời gian thực
+                  </p>
+                </div>
+
+                <select
+                  value={logFilter}
+                  onChange={(e) => setLogFilter(e.target.value)}
+                  className="glass-neon-input rounded-xl px-4 py-2.5 text-xs text-white"
+                >
+                  <option value="ALL" className="bg-[#071333]">Tất cả loại giao dịch</option>
+                  <option value="COMMISSION" className="bg-[#071333]">Nhận Hoa Hồng</option>
+                  <option value="DEPOSIT" className="bg-[#071333]">Nạp Tiền Ứng Quỹ</option>
+                  <option value="WITHDRAW" className="bg-[#071333]">Rút Tiền</option>
+                  <option value="ADJUSTMENT" className="bg-[#071333]">Admin Điều Chỉnh</option>
+                </select>
+              </div>
+
+              <div className="overflow-x-auto rounded-2xl border border-slate-800">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-[#091e52] text-blue-200 uppercase font-extrabold border-b border-slate-800">
+                    <tr>
+                      <th className="p-3.5">Mã TX</th>
+                      <th className="p-3.5">Nhân Viên</th>
+                      <th className="p-3.5">Loại GD</th>
+                      <th className="p-3.5">Nội Dung Đối Soát</th>
+                      <th className="p-3.5 text-right">Biến Động Số Dư</th>
+                      <th className="p-3.5 text-center">Thời Gian</th>
+                      <th className="p-3.5 text-center">Trạng Thái</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800">
+                    {filteredLogs.map((tx) => (
+                      <tr key={tx.id} className="hover:bg-blue-600/10 transition">
+                        <td className="p-3.5 font-mono font-bold text-cyan-300">{tx.id}</td>
+                        <td className="p-3.5 font-semibold text-white">{tx.userName} ({tx.userId})</td>
+                        <td className="p-3.5">
+                          <span className={'px-2.5 py-1 rounded-lg text-[10px] font-extrabold ' + (
+                            tx.type === 'COMMISSION' ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' :
+                            tx.type === 'DEPOSIT' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' :
+                            tx.type === 'WITHDRAW' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                          )}>
+                            {tx.type === 'COMMISSION' ? 'Hoa Hồng' : tx.type === 'DEPOSIT' ? 'Nạp Tiền' : tx.type === 'WITHDRAW' ? 'Rút Tiền' : 'Điều Chỉnh'}
+                          </span>
+                        </td>
+                        <td className="p-3.5 text-slate-200">{tx.note}</td>
+                        <td className={'p-3.5 text-right font-mono font-extrabold text-sm ' + (tx.amount >= 0 ? 'text-emerald-400' : 'text-rose-400')}>
+                          {tx.amount >= 0 ? '+' + formatVND(tx.amount) : formatVND(tx.amount)}
+                        </td>
+                        <td className="p-3.5 text-center text-blue-200/70">{tx.timestamp}</td>
+                        <td className="p-3.5 text-center">
+                          <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-extrabold border border-emerald-500/30">
+                            Thành công
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* MODAL ĐIỀU CHỈNH TIỀN THỦ CÔNG */}
+          {adjustModal && (
+            <div className="fixed inset-0 bg-[#02081a]/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
+              <form onSubmit={handleSaveAdjustment} className="glass-neon-panel rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-4 shadow-2xl relative border border-slate-800">
+                <button type="button" onClick={() => setAdjustModal(null)} className="absolute right-5 top-5 text-blue-300 hover:text-white">
+                  <X className="w-5 h-5" />
+                </button>
+                <h3 className="text-lg font-extrabold text-white border-b border-slate-800 pb-3 flex items-center gap-2">
+                  <DollarSign className="text-emerald-400 w-5 h-5" />
+                  Điều Chỉnh Số Dư Ví COD Nhân Viên
+                </h3>
+                <div className="bg-[#071333] p-3.5 rounded-2xl border border-slate-800 text-xs flex justify-between">
+                  <span className="text-blue-200">Nhân viên: <strong className="text-white">{adjustModal.name} ({adjustModal.id})</strong></span>
+                  <span className="text-emerald-400 font-extrabold">Ví: {formatVND(adjustModal.balance)}</span>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-blue-200 uppercase mb-1.5">Loại thao tác</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setAdjustType('ADD')}
+                      className={'py-2.5 rounded-xl text-xs font-bold transition border ' + (adjustType === 'ADD' ? 'bg-emerald-600 text-white border-emerald-400 shadow-md shadow-black/30' : 'bg-[#091b4c] text-blue-300 border-slate-800')}
+                    >
+                      + Cộng Tiền
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setAdjustType('SUB')}
+                      className={'py-2.5 rounded-xl text-xs font-bold transition border ' + (adjustType === 'SUB' ? 'bg-rose-600 text-white border-rose-400 shadow-md shadow-black/30' : 'bg-[#091b4c] text-blue-300 border-slate-800')}
+                    >
+                      - Trừ Tiền
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-blue-200 uppercase mb-1.5">Số tiền (VNĐ)</label>
+                  <input
+                    type="number"
+                    required
+                    min="1000"
+                    placeholder="VD: 500000"
+                    value={adjustAmount}
+                    onChange={(e) => setAdjustAmount(e.target.value)}
+                    className="w-full glass-neon-input rounded-xl px-4 py-2.5 text-white text-sm font-mono font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-blue-200 uppercase mb-1.5">Lý do / Ghi chú đối soát</label>
+                  <input
+                    type="text"
+                    placeholder="VD: Thưởng doanh số hoặc đối soát COD"
+                    value={adjustReason}
+                    onChange={(e) => setAdjustReason(e.target.value)}
+                    className="w-full glass-neon-input rounded-xl px-4 py-2.5 text-white text-sm"
+                  />
+                </div>
+                <div className="flex gap-3 pt-3">
+                  <button type="button" onClick={() => setAdjustModal(null)} className="w-1/2 bg-[#091b4c] hover:bg-slate-800 text-blue-200 font-bold py-3 rounded-xl text-xs">Hủy</button>
+                  <button type="submit" className="w-1/2 btn-neon-primary text-white font-bold py-3 rounded-xl text-xs">Xác Nhận Lưu</button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {/* MODAL ĐỔI PASS */}
+          {passwordModal && (
+            <div className="fixed inset-0 bg-[#02081a]/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
+              <form onSubmit={handleSavePassword} className="glass-neon-panel rounded-3xl max-w-sm w-full p-6 sm:p-8 space-y-4 shadow-2xl relative border border-slate-800">
+                <button type="button" onClick={() => setPasswordModal(null)} className="absolute right-5 top-5 text-blue-300 hover:text-white">
+                  <X className="w-5 h-5" />
+                </button>
+                <h3 className="text-lg font-extrabold text-white border-b border-slate-800 pb-3 flex items-center gap-2">
+                  <Key className="text-purple-400 w-5 h-5" />
+                  Đổi / Reset Mật Khẩu
+                </h3>
+                <div className="bg-[#071333] p-3.5 rounded-2xl border border-slate-800 text-xs space-y-1">
+                  <p className="text-blue-200">Nhân viên: <strong className="text-white">{passwordModal.name} ({passwordModal.id})</strong></p>
+                  <p className="text-blue-200">Mật khẩu hiện tại: <code className="text-amber-300 font-bold">{passwordModal.password}</code></p>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-blue-200 uppercase mb-1.5">Mật khẩu mới</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Nhập pass mới..."
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="w-full glass-neon-input rounded-xl px-4 py-2.5 text-white text-sm font-mono font-bold"
+                  />
+                </div>
+                <div className="flex gap-3 pt-3">
+                  <button type="button" onClick={() => setPasswordModal(null)} className="w-1/2 bg-[#091b4c] hover:bg-slate-800 text-blue-200 font-bold py-3 rounded-xl text-xs">Hủy</button>
+                  <button type="submit" className="w-1/2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold py-3 rounded-xl text-xs shadow-md shadow-black/30">Lưu Mật Khẩu</button>
+                </div>
+              </form>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // ========================================================
+    // COMPONENT: STAFF MODULE (ĐỒNG BỘ PHONG CÁCH NEON CYBER)
+    // ========================================================
+    function StaffView({
+      user,
+      setUser,
+      staffList,
+      setStaffList,
+      orders,
+      setOrders,
+      transactions,
+      setTransactions,
+      withdrawRequests,
+      setWithdrawRequests,
+      showToast
+    }) {
+      const [staffTab, setStaffTab] = useState('orders');
+
+      const [showDepositModal, setShowDepositModal] = useState(false);
+      const [depositAmount, setDepositAmount] = useState('500000');
+      const [depositNote, setDepositNote] = useState('');
+
+      const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+      const [withdrawForm, setWithdrawForm] = useState({
+        amount: '',
+        bankName: 'MB Bank',
+        bankAccount: '198082200407',
+        accountName: 'NGUYEN DUC HUY'
+      });
+
+      const myOrders = orders.filter(o => o.staffId === user.id);
+      const myPendingOrders = myOrders.filter(o => o.status === 'PENDING');
+      const myTransactions = transactions.filter(t => t.userId === user.id);
+
+      // Xác nhận đơn hàng -> Tự động cộng hoa hồng vào Ví
+      const handleConfirmOrder = (orderId) => {
+        const ord = orders.find(o => o.id === orderId && o.staffId === user.id);
+        if (!ord || ord.status !== 'PENDING') return;
+
+        setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: 'CONFIRMED' } : o));
+
+        const commission = ord.commissionAmount;
+        setStaffList(prev => prev.map(s => {
+          if (s.id === user.id) {
+            return {
+              ...s,
+              balance: s.balance + commission,
+              totalCommission: s.totalCommission + commission,
+              completedOrders: s.completedOrders + 1
+            };
+          }
+          return s;
+        }));
+
+        const newTx = {
+          id: 'TX-' + Math.floor(1000 + Math.random() * 9000),
+          userId: user.id,
+          userName: user.name,
+          type: 'COMMISSION',
+          amount: commission,
+          note: 'Hoa hồng đơn hàng ' + ord.id + ' (' + ord.platform + ')',
+          status: 'SUCCESS',
+          timestamp: new Date().toLocaleString('vi-VN')
+        };
+        setTransactions([newTx, ...transactions]);
+
+        showToast('Xác nhận thành công! +' + formatVND(commission) + ' hoa hồng đã được cộng vào Ví COD!');
+
+        if (supabase) {
+          supabase.from('orders').update({ status: 'CONFIRMED', confirmed_at: new Date().toISOString() }).eq('id', orderId).then();
+          supabase.from('staff').update({
+            balance: user.balance + commission,
+            total_commission: user.totalCommission + commission,
+            completed_orders: user.completedOrders + 1
+          }).eq('id', user.id).then();
+          supabase.from('transactions').insert([{
+            id: newTx.id,
+            user_id: newTx.userId,
+            user_name: newTx.userName,
+            type: newTx.type,
+            amount: newTx.amount,
+            note: newTx.note,
+            status: newTx.status,
+            timestamp: new Date().toISOString()
+          }]).then();
+        }
+      };
+
+      // Nạp tiền vào quỹ COD
+      const handleConfirmDeposit = (e) => {
+        e.preventDefault();
+        const amt = parseFloat(depositAmount) || 0;
+        if (amt <= 0) return;
+
+        setStaffList(prev => prev.map(s => {
+          if (s.id === user.id) {
+            return { ...s, balance: s.balance + amt };
+          }
+          return s;
+        }));
+
+        const newTx = {
+          id: 'TX-' + Math.floor(1000 + Math.random() * 9000),
+          userId: user.id,
+          userName: user.name,
+          type: 'DEPOSIT',
+          amount: amt,
+          note: depositNote || 'Nạp tiền ứng quỹ COD',
+          status: 'SUCCESS',
+          timestamp: new Date().toLocaleString('vi-VN')
+        };
+        setTransactions([newTx, ...transactions]);
+
+        showToast('Nạp thành công +' + formatVND(amt) + ' vào quỹ COD!');
+
+        if (supabase) {
+          supabase.from('staff').update({ balance: user.balance + amt }).eq('id', user.id).then();
+          supabase.from('transactions').insert([{
+            id: newTx.id,
+            user_id: newTx.userId,
+            user_name: newTx.userName,
+            type: newTx.type,
+            amount: newTx.amount,
+            note: newTx.note,
+            status: newTx.status,
+            timestamp: new Date().toISOString()
+          }]).then();
+        }
+
+        setShowDepositModal(false);
+      };
+
+      // Gửi yêu cầu rút tiền
+      const handleRequestWithdraw = (e) => {
+        e.preventDefault();
+        const amt = parseFloat(withdrawForm.amount) || 0;
+
+        if (amt <= 0) {
+          showToast('Số tiền rút không hợp lệ!', 'error');
+          return;
+        }
+
+        if (amt > user.balance) {
+          showToast('Số dư ví không đủ để rút số tiền này!', 'error');
+          return;
+        }
+
+        const newReq = {
+          id: 'WD-' + Math.floor(100 + Math.random() * 900),
+          staffId: user.id,
+          staffName: user.name,
+          bankName: withdrawForm.bankName,
+          bankAccount: withdrawForm.bankAccount,
+          accountName: withdrawForm.accountName,
+          amount: amt,
+          status: 'PENDING',
+          createdAt: new Date().toLocaleString('vi-VN')
+        };
+
+        setWithdrawRequests([newReq, ...withdrawRequests]);
+        showToast('Đã gửi yêu cầu rút ' + formatVND(amt) + '! Vui lòng chờ Admin phê duyệt.');
+
+        if (supabase) {
+          supabase.from('withdraw_requests').insert([{
+            id: newReq.id,
+            staff_id: newReq.staffId,
+            staff_name: newReq.staffName,
+            bank_name: newReq.bankName,
+            bank_account: newReq.bankAccount,
+            account_name: newReq.accountName,
+            amount: newReq.amount,
+            status: 'PENDING',
+            created_at: new Date().toISOString()
+          }]).then();
+        }
+        setShowWithdrawModal(false);
+        setWithdrawForm({ ...withdrawForm, amount: '' });
+      };
+
+      return (
+        <div className="space-y-6">
+          {/* TỔNG QUAN VÍ NHÂN VIÊN */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+            <div className="glass-neon-panel rounded-3xl p-6 relative overflow-hidden">
+              <div className="flex justify-between items-start">
+                <div>
+                  <span className="text-xs font-bold text-blue-300 uppercase tracking-wider">Số Dư Ví COD Hiện Tại</span>
+                  <div className="text-2xl sm:text-3xl font-extrabold text-emerald-400 mt-1 font-mono">
+                    {formatVND(user.balance)}
+                  </div>
+                </div>
+                <div className="p-3 bg-emerald-500/20 text-emerald-400 rounded-2xl border border-slate-800">
+                  <Wallet className="w-6 h-6" />
+                </div>
+              </div>
+              <div className="mt-4 flex gap-2">
+                <button
+                  onClick={() => setShowDepositModal(true)}
+                  className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-md shadow-black/30 cursor-pointer"
+                >
+                  <ArrowDownLeft className="w-4 h-4" /> Nạp COD
+                </button>
+                <button
+                  onClick={() => setShowWithdrawModal(true)}
+                  className="px-3.5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-md shadow-black/30 cursor-pointer"
+                >
+                  <ArrowUpRight className="w-4 h-4" /> Rút Tiền
+                </button>
+              </div>
+            </div>
+
+            <div className="glass-neon-panel rounded-3xl p-6 relative overflow-hidden">
+              <div className="flex justify-between items-start">
+                <div>
+                  <span className="text-xs font-bold text-blue-300 uppercase tracking-wider">Tổng Hoa Hồng Đã Nhận</span>
+                  <div className="text-2xl sm:text-3xl font-extrabold text-fuchsia-400 mt-1 font-mono">
+                    {formatVND(user.totalCommission)}
+                  </div>
+                </div>
+                <div className="p-3 bg-purple-500/20 text-purple-300 rounded-2xl border border-slate-800">
+                  <TrendingUp className="w-6 h-6" />
+                </div>
+              </div>
+              <p className="text-xs text-blue-200/70 mt-4">Hoa hồng tự động ghi nhận khi đơn hoàn tất</p>
+            </div>
+
+            <div className="glass-neon-panel rounded-3xl p-6 relative overflow-hidden">
+              <div className="flex justify-between items-start">
+                <div>
+                  <span className="text-xs font-bold text-blue-300 uppercase tracking-wider">Đơn Hàng Chờ Nhận</span>
+                  <div className="text-2xl sm:text-3xl font-extrabold text-amber-300 mt-1 font-mono">
+                    {myPendingOrders.length} Đơn
+                  </div>
+                </div>
+                <div className="p-3 bg-amber-500/20 text-amber-300 rounded-2xl border border-slate-800">
+                  <ShoppingBag className="w-6 h-6" />
+                </div>
+              </div>
+              <p className="text-xs text-blue-200/70 mt-4">Xác nhận để nhận ngay hoa hồng vào ví</p>
+            </div>
+          </div>
+
+          {/* TABS HEADER NHÂN VIÊN */}
+          <div className="flex flex-wrap items-center gap-3 pb-2">
+            <button
+              onClick={() => setStaffTab('orders')}
+              className={'flex items-center gap-2 px-5 py-3 rounded-2xl text-xs sm:text-sm font-bold transition ' + (
+                staffTab === 'orders' ? 'tab-neon-active' : 'tab-neon-inactive'
+              )}
+            >
+              <ShoppingBag className="w-4 h-4" />
+              Đơn Cần Xác Nhận ({myPendingOrders.length})
+            </button>
+
+            <button
+              onClick={() => setStaffTab('platforms')}
+              className={'flex items-center gap-2 px-5 py-3 rounded-2xl text-xs sm:text-sm font-bold transition ' + (
+                staffTab === 'platforms' ? 'tab-neon-active' : 'tab-neon-inactive'
+              )}
+            >
+              <Layers className="w-4 h-4" />
+              Sàn TMĐT Liên Kết
+            </button>
+
+            <button
+              onClick={() => setStaffTab('history')}
+              className={'flex items-center gap-2 px-5 py-3 rounded-2xl text-xs sm:text-sm font-bold transition ' + (
+                staffTab === 'history' ? 'tab-neon-active' : 'tab-neon-inactive'
+              )}
+            >
+              <History className="w-4 h-4" />
+              Lịch Sử Giao Dịch Ví
+            </button>
+          </div>
+
+          {/* TAB 1: ĐƠN CẦN XÁC NHẬN */}
+          {staffTab === 'orders' && (
+            <div className="glass-neon-panel rounded-3xl p-6 sm:p-8 space-y-6">
+              <div className="border-b border-slate-800 pb-4">
+                <h2 className="text-xl font-extrabold text-white">Danh Sách Đơn Hàng Cần Nhận & Xác Nhận</h2>
+                <p className="text-xs text-blue-200/70 mt-1">
+                  Nhân viên bấm <strong>[Nhận Đơn & Xác Nhận]</strong> khi giao thành công, tiền hoa hồng sẽ tự động cộng vào Ví COD.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {myOrders.length === 0 ? (
+                  <div className="col-span-full text-center py-12 text-blue-300/60 font-medium">
+                    Bạn chưa có đơn hàng nào được phân công.
+                  </div>
+                ) : (
+                  myOrders.map((ord) => (
+                    <div key={ord.id} className="glass-neon-card p-5 rounded-2xl space-y-4 hover:border-slate-700 transition">
+                      <div className="flex justify-between items-center">
+                        <span className="font-mono font-bold text-cyan-400 text-sm">{ord.id}</span>
+                        <span className={'px-3 py-1 rounded-full text-xs font-bold ' + (
+                          ord.status === 'CONFIRMED'
+                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
+                            : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                        )}>
+                          {ord.status === 'CONFIRMED' ? '✓ Đã nhận hoa hồng' : '⏳ Chờ xác nhận'}
+                        </span>
+                      </div>
+
+                      <div>
+                        <h4 className="font-bold text-white text-sm">{ord.productName}</h4>
+                        <span className="text-xs text-blue-300/80">Sàn: {ord.platform} | Tạo lúc: {ord.createdAt}</span>
+                      </div>
+
+                      <div className="p-3 bg-[#071333] rounded-xl border border-slate-800 text-xs space-y-1">
+                        <div className="flex justify-between">
+                          <span className="text-blue-200/70">Giá trị đơn:</span>
+                          <span className="font-bold text-white">{formatVND(ord.orderValue)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-blue-200/70">Tiền COD:</span>
+                          <span className="font-bold text-white">{formatVND(ord.codAmount)}</span>
+                        </div>
+                        <div className="flex justify-between pt-1 border-t border-slate-800">
+                          <span className="text-cyan-300 font-bold">Hoa hồng ({ord.commissionRate}%):</span>
+                          <span className="font-bold text-emerald-400 text-sm">+{formatVND(ord.commissionAmount)}</span>
+                        </div>
+                      </div>
+
+                      {ord.status === 'PENDING' ? (
+                        <button
+                          onClick={() => handleConfirmOrder(ord.id)}
+                          className="w-full btn-neon-primary text-white font-bold py-3 rounded-xl text-xs flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-black/30"
+                        >
+                          <CheckCircle className="w-4 h-4" /> Nhận Đơn & Xác Nhận (+{formatVND(ord.commissionAmount)})
+                        </button>
+                      ) : (
+                        <div className="text-center py-2 text-xs font-bold text-emerald-400 bg-emerald-500/10 rounded-xl border border-slate-800">
+                          ✓ Đã hoàn tất và cộng tiền ví
+                        </div>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* TAB 2: SÀN TMĐT LIÊN KẾT */}
+          {staffTab === 'platforms' && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {ECOM_PLATFORMS.map((p) => (
+                <div key={p.name} className="glass-neon-panel rounded-3xl p-6 space-y-4 hover:border-slate-700 transition">
+                  <div className="flex items-center gap-3">
+                    <span className="text-3xl">{p.logo}</span>
+                    <div>
+                      <h3 className="font-bold text-white text-base">{p.name}</h3>
+                      <span className="text-xs text-blue-200/70">{p.desc}</span>
+                    </div>
+                  </div>
+                  <div className="p-3 bg-[#071333] rounded-xl text-xs text-blue-200 space-y-1 border border-slate-800">
+                    <p>• Tỷ lệ hoa hồng trung bình: <strong className="text-emerald-400">8% - 15%</strong></p>
+                    <p>• Hỗ trợ COD toàn quốc</p>
+                  </div>
+                  <button className="w-full py-2.5 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-slate-800 text-xs font-bold transition">
+                    Xem Đơn Từ Sàn Này
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* TAB 3: LỊCH SỬ GIAO DỊCH */}
+          {staffTab === 'history' && (
+            <div className="glass-neon-panel rounded-3xl p-6 sm:p-8 space-y-6">
+              <h2 className="text-xl font-extrabold text-white border-b border-slate-800 pb-4">Lịch Sử Biến Động Số Dư Cá Nhân</h2>
+              <div className="overflow-x-auto rounded-2xl border border-slate-800">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-[#091e52] text-blue-200 uppercase font-extrabold border-b border-slate-800">
+                    <tr>
+                      <th className="p-3.5">Mã Giao Dịch</th>
+                      <th className="p-3.5">Loại</th>
+                      <th className="p-3.5">Nội Dung</th>
+                      <th className="p-3.5 text-right">Biến Động</th>
+                      <th className="p-3.5 text-center">Thời Gian</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800">
+                    {myTransactions.map((tx) => (
+                      <tr key={tx.id} className="hover:bg-blue-600/10 transition">
+                        <td className="p-3.5 font-mono font-bold text-cyan-400">{tx.id}</td>
+                        <td className="p-3.5">
+                          <span className="px-2.5 py-0.5 rounded-md font-bold text-[10px] bg-blue-500/20 text-blue-300">
+                            {tx.type}
+                          </span>
+                        </td>
+                        <td className="p-3.5 text-slate-200">{tx.note}</td>
+                        <td className={'p-3.5 text-right font-mono font-bold text-sm ' + (tx.amount >= 0 ? 'text-emerald-400' : 'text-rose-400')}>
+                          {tx.amount >= 0 ? '+' + formatVND(tx.amount) : formatVND(tx.amount)}
+                        </td>
+                        <td className="p-3.5 text-center text-blue-200/70">{tx.timestamp}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* MODAL NẠP TIỀN COD (HIỂN THỊ MB BANK) */}
+          {showDepositModal && (
+            <div className="fixed inset-0 bg-[#02081a]/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
+              <form onSubmit={handleConfirmDeposit} className="glass-neon-panel rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-4 shadow-2xl relative border border-slate-800">
+                <button type="button" onClick={() => setShowDepositModal(false)} className="absolute right-5 top-5 text-blue-300 hover:text-white">
+                  <X className="w-5 h-5" />
+                </button>
+                <h3 className="text-lg font-extrabold text-white border-b border-slate-800 pb-3 flex items-center gap-2">
+                  <ArrowDownLeft className="text-emerald-400 w-5 h-5" />
+                  Nạp Tiền Ứng Quỹ COD
+                </h3>
+
+                <div className="p-4 bg-[#071333] rounded-2xl border border-slate-800 text-xs space-y-2">
+                  <span className="text-cyan-300 font-bold block uppercase">Thông tin chuyển khoản Ngân Hàng:</span>
+                  <div className="flex justify-between">
+                    <span className="text-blue-200/70">Ngân hàng:</span>
+                    <strong className="text-white">{BANK_CONFIG.bankName}</strong>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-blue-200/70">Số tài khoản:</span>
+                    <code className="text-emerald-400 font-mono font-bold text-sm">{BANK_CONFIG.accountNumber}</code>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-blue-200/70">Chủ tài khoản:</span>
+                    <strong className="text-white font-mono">{BANK_CONFIG.accountHolder}</strong>
+                  </div>
+                  <div className="flex justify-between pt-1 border-t border-slate-800">
+                    <span className="text-blue-200/70">Cú pháp:</span>
+                    <strong className="text-amber-300 font-mono">{BANK_CONFIG.transferSyntaxPrefix} {user.id}</strong>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-blue-200 uppercase mb-1.5">Số tiền đã chuyển (VNĐ)</label>
+                  <input
+                    type="number"
+                    required
+                    min="10000"
+                    value={depositAmount}
+                    onChange={(e) => setDepositAmount(e.target.value)}
+                    className="w-full glass-neon-input rounded-xl px-4 py-2.5 text-white text-sm font-mono font-bold"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-blue-200 uppercase mb-1.5">Ghi chú đối soát</label>
+                  <input
+                    type="text"
+                    placeholder="VD: Đã chuyển qua MB Bank"
+                    value={depositNote}
+                    onChange={(e) => setDepositNote(e.target.value)}
+                    className="w-full glass-neon-input rounded-xl px-4 py-2.5 text-white text-sm"
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-3">
+                  <button type="button" onClick={() => setShowDepositModal(false)} className="w-1/2 bg-[#091b4c] text-blue-200 font-bold py-3 rounded-xl text-xs">Hủy</button>
+                  <button type="submit" className="w-1/2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl text-xs shadow-md shadow-black/30">Xác Nhận Đã Nạp</button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {/* MODAL RÚT TIỀN */}
+          {showWithdrawModal && (
+            <div className="fixed inset-0 bg-[#02081a]/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
+              <form onSubmit={handleRequestWithdraw} className="glass-neon-panel rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-4 shadow-2xl relative border border-slate-800">
+                <button type="button" onClick={() => setShowWithdrawModal(false)} className="absolute right-5 top-5 text-blue-300 hover:text-white">
+                  <X className="w-5 h-5" />
+                </button>
+                <h3 className="text-lg font-extrabold text-white border-b border-slate-800 pb-3 flex items-center gap-2">
+                  <ArrowUpRight className="text-cyan-400 w-5 h-5" />
+                  Yêu Cầu Rút Tiền Về Ngân Hàng
+                </h3>
+
+                <div className="bg-[#071333] p-3 rounded-xl border border-slate-800 text-xs flex justify-between">
+                  <span className="text-blue-200">Số dư khả dụng:</span>
+                  <span className="text-emerald-400 font-bold font-mono">{formatVND(user.balance)}</span>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-blue-200 uppercase mb-1.5">Số tiền muốn rút (VNĐ)</label>
+                  <input
+                    type="number"
+                    required
+                    min="50000"
+                    max={user.balance}
+                    placeholder="VD: 500000"
+                    value={withdrawForm.amount}
+                    onChange={(e) => setWithdrawForm({ ...withdrawForm, amount: e.target.value })}
+                    className="w-full glass-neon-input rounded-xl px-4 py-2.5 text-white text-sm font-mono font-bold"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-blue-200 uppercase mb-1.5">Ngân hàng thụ hưởng</label>
+                  <select
+                    value={withdrawForm.bankName}
+                    onChange={(e) => setWithdrawForm({ ...withdrawForm, bankName: e.target.value })}
+                    className="w-full glass-neon-input rounded-xl px-4 py-2.5 text-white text-sm"
+                  >
+                    <option value="MB Bank" className="bg-[#071333]">MB Bank (Quân Đội)</option>
+                    <option value="Vietcombank" className="bg-[#071333]">Vietcombank</option>
+                    <option value="Techcombank" className="bg-[#071333]">Techcombank</option>
+                    <option value="VietinBank" className="bg-[#071333]">VietinBank</option>
+                    <option value="ACB" className="bg-[#071333]">ACB (Á Châu)</option>
+                    <option value="BIDV" className="bg-[#071333]">BIDV</option>
+                    <option value="TPBank" className="bg-[#071333]">TPBank</option>
+                    <option value="VPBank" className="bg-[#071333]">VPBank</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-blue-200 uppercase mb-1.5">Số tài khoản ngân hàng</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Nhập số tài khoản..."
+                    value={withdrawForm.bankAccount}
+                    onChange={(e) => setWithdrawForm({ ...withdrawForm, bankAccount: e.target.value })}
+                    className="w-full glass-neon-input rounded-xl px-4 py-2.5 text-white text-sm font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-blue-200 uppercase mb-1.5">Tên chủ tài khoản (In hoa)</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="VD: NGUYEN VAN A"
+                    value={withdrawForm.accountName}
+                    onChange={(e) => setWithdrawForm({ ...withdrawForm, accountName: e.target.value })}
+                    className="w-full glass-neon-input rounded-xl px-4 py-2.5 text-white text-sm uppercase"
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-3">
+                  <button type="button" onClick={() => setShowWithdrawModal(false)} className="w-1/2 bg-[#091b4c] text-blue-200 font-bold py-3 rounded-xl text-xs">Hủy</button>
+                  <button type="submit" className="w-1/2 btn-neon-primary text-white font-bold py-3 rounded-xl text-xs">Gửi Yêu Cầu</button>
+                </div>
+              </form>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // ========================================================
+    // ROOT APP COMPONENT (CHỨA HEADER & SHELL CHUẨN MẪU)
+    // ========================================================
+    function App() {
+      const [staffList, setStaffList] = useState(() => loadStorage('staffList', INITIAL_STAFF));
+      const [orders, setOrders] = useState(() => loadStorage('orders', INITIAL_ORDERS));
+      const [transactions, setTransactions] = useState(() => loadStorage('transactions', INITIAL_TRANSACTIONS));
+      const [withdrawRequests, setWithdrawRequests] = useState(() => loadStorage('withdrawals', INITIAL_WITHDRAWALS));
+      const [user, setUser] = useState(() => loadStorage('currentUser', null));
+
+      const [toast, setToast] = useState(null);
+      const [cloudStatus, setCloudStatus] = useState('CONNECTING'); // 'CONNECTED' | 'OFFLINE' | 'CONNECTING'
+
+      const showToast = (message, type = 'success') => {
+        setToast({ message, type });
+        setTimeout(() => setToast(null), 3500);
+      };
+
+      // TỰ ĐỘNG ĐỒNG BỘ SUPABASE CLOUD (KẾT NỐI ONLINE / OFFLINE FALLBACK)
+      const syncFromSupabase = async () => {
+        if (!supabase) {
+          setCloudStatus('OFFLINE');
+          return;
+        }
+
+        try {
+          // 1. Fetch Staff
+          const { data: staffData, error: staffErr } = await supabase.from('staff').select('*');
+          if (!staffErr && staffData && staffData.length > 0) {
+            const mappedStaff = staffData.map(s => ({
+              id: s.id,
+              name: s.name,
+              email: s.email,
+              password: s.password,
+              balance: Number(s.balance || 0),
+              totalCommission: Number(s.total_commission || 0),
+              completedOrders: Number(s.completed_orders || 0)
+            }));
+            setStaffList(mappedStaff);
+          }
+
+          // 2. Fetch Orders
+          const { data: ordData } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
+          if (ordData && ordData.length > 0) {
+            setOrders(ordData.map(o => ({
+              id: o.id,
+              staffId: o.staff_id,
+              productName: o.product_name,
+              platform: o.platform,
+              orderValue: Number(o.order_value || 0),
+              codAmount: Number(o.cod_amount || 0),
+              commissionRate: Number(o.commission_rate || 0),
+              commissionAmount: Number(o.commission_amount || 0),
+              status: o.status,
+              createdAt: new Date(o.created_at).toLocaleString('vi-VN')
+            })));
+          }
+
+          // 3. Fetch Transactions
+          const { data: txData } = await supabase.from('transactions').select('*').order('timestamp', { ascending: false });
+          if (txData && txData.length > 0) {
+            setTransactions(txData.map(t => ({
+              id: t.id,
+              userId: t.user_id,
+              userName: t.user_name,
+              type: t.type,
+              amount: Number(t.amount || 0),
+              note: t.note,
+              status: t.status,
+              timestamp: new Date(t.timestamp).toLocaleString('vi-VN')
+            })));
+          }
+
+          // 4. Fetch Withdrawals
+          const { data: wdData } = await supabase.from('withdraw_requests').select('*').order('created_at', { ascending: false });
+          if (wdData && wdData.length > 0) {
+            setWithdrawRequests(wdData.map(w => ({
+              id: w.id,
+              staffId: w.staff_id,
+              staffName: w.staff_name,
+              bankName: w.bank_name,
+              bankAccount: w.bank_account,
+              accountName: w.account_name,
+              amount: Number(w.amount || 0),
+              status: w.status,
+              createdAt: new Date(w.created_at).toLocaleString('vi-VN')
+            })));
+          }
+
+          setCloudStatus('CONNECTED');
+        } catch (err) {
+          console.warn("Supabase fetch fallback to local:", err);
+          setCloudStatus('OFFLINE');
+        }
+      };
+
+      useEffect(() => {
+        syncFromSupabase();
+
+        // Đăng ký Supabase Realtime Channel để đồng bộ giữa các máy
+        if (supabase) {
+          const channel = supabase.channel('oms_cloud_realtime')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => syncFromSupabase())
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'staff' }, () => syncFromSupabase())
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'withdraw_requests' }, () => syncFromSupabase())
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions' }, () => syncFromSupabase())
+            .subscribe();
+
+          return () => {
+            supabase.removeChannel(channel);
+          };
+        }
+      }, []);
+
+      // Tự động lưu LocalStorage cache
+      useEffect(() => { saveStorage('staffList', staffList); }, [staffList]);
+      useEffect(() => { saveStorage('orders', orders); }, [orders]);
+      useEffect(() => { saveStorage('transactions', transactions); }, [transactions]);
+      useEffect(() => { saveStorage('withdrawals', withdrawRequests); }, [withdrawRequests]);
+      useEffect(() => { saveStorage('currentUser', user); }, [user]);
+
+      // Đồng bộ user state khi staffList thay đổi
+      useEffect(() => {
+        if (user && user.role === 'STAFF') {
+          const updatedStaff = staffList.find(s => s.id === user.id);
+          if (updatedStaff) {
+            setUser(prev => ({ ...prev, ...updatedStaff }));
+          }
+        }
+      }, [staffList]);
+
+      const handleLogout = () => {
+        setUser(null);
+        showToast('Đã đăng xuất khỏi hệ thống', 'info');
+      };
+
+      return (
+        <div className={`min-h-screen text-slate-100 flex flex-col font-sans ${!user ? 'bg-login-scene' : 'bg-dashboard-scene'}`}>
+          {/* TOAST NOTIFICATION */}
+          {toast && (
+            <div className="fixed top-5 right-5 z-50 flex items-center gap-2.5 glass-neon-panel text-white px-5 py-3.5 rounded-2xl shadow-2xl border border-slate-800 animate-bounce">
+              {toast.type === 'success' ? <CheckCircle className="w-5 h-5 text-emerald-400" /> : <AlertCircle className="w-5 h-5 text-amber-400" />}
+              <span className="text-xs sm:text-sm font-bold">{toast.message}</span>
+            </div>
+          )}
+
+          {!user ? (
+            <LoginScreen staffList={staffList} onLoginSuccess={setUser} showToast={showToast} />
+          ) : (
+            <>
+              {/* HEADER BAR CHUẨN MẪU (THEO ĐÚNG ẢNH MẪU OMS SYSTEM) */}
+              <header className="sticky top-0 z-40 bg-[#040d25]/80 backdrop-blur-xl border-b border-slate-800">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                  <div className="flex items-center justify-between h-20">
+                    
+                    {/* Logo & Quyền hạn */}
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-12 h-12 flex items-center justify-center">
+                        <img 
+                          src="img/logo-transparent.png" 
+                          alt="OMS Logo" 
+                          className="w-full h-full object-contain filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.3)]" 
+                        />
+                      </div>
+                      <div className="flex items-center gap-2.5">
+                        <span className="font-extrabold text-xl text-white tracking-wide">
+                          OMS System
+                        </span>
+                        <span className={'text-xs px-3 py-1 rounded-full font-bold border ' + (
+                          user.role === 'ADMIN'
+                            ? 'bg-purple-500/15 text-purple-300 border-slate-800 shadow-sm shadow-black/30'
+                            : 'bg-cyan-500/15 text-cyan-300 border-slate-800 shadow-sm shadow-black/30'
+                        )}>
+                          {user.role === 'ADMIN' ? '👑 Quản Trị Viên' : '💼 ' + user.name + ' (' + user.id + ')'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Tiện ích & Nút Đăng Xuất */}
+                    <div className="flex items-center gap-3 sm:gap-4">
+                      {/* Trạng thái Supabase Cloud Sync */}
+                      {cloudStatus === 'CONNECTED' ? (
+                        <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                          <span>Cloud Sync: Online</span>
+                        </div>
+                      ) : (
+                        <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30" title="Chạy supabase_schema.sql trong Supabase để bật Cloud Realtime">
+                          <span className="w-2 h-2 rounded-full bg-amber-400"></span>
+                          <span>Local Mode (Chờ SQL)</span>
+                        </div>
+                      )}
+
+                      {user.role === 'STAFF' && (
+                        <div className="hidden sm:flex items-center gap-2 glass-neon-card px-4 py-2 rounded-xl border border-slate-800">
+                          <Wallet className="w-4 h-4 text-emerald-400" />
+                          <span className="text-xs text-blue-200">Ví COD:</span>
+                          <span className="font-mono font-extrabold text-sm text-emerald-400">{formatVND(user.balance)}</span>
+                        </div>
+                      )}
+
+                      <button
+                        onClick={handleLogout}
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition text-rose-300 hover:text-white bg-rose-500/10 hover:bg-rose-500/25 border border-rose-500/30 shadow-sm shadow-black/20 cursor-pointer"
+                      >
+                        <LogOut className="w-4 h-4 text-rose-400" />
+                        <span>Đăng xuất</span>
+                      </button>
+                    </div>
+
+                  </div>
+                </div>
+              </header>
+
+              {/* MAIN CONTENT CONTAINER */}
+              <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
+                {user.role === 'ADMIN' ? (
+                  <AdminView
+                    staffList={staffList}
+                    setStaffList={setStaffList}
+                    orders={orders}
+                    setOrders={setOrders}
+                    transactions={transactions}
+                    setTransactions={setTransactions}
+                    withdrawRequests={withdrawRequests}
+                    setWithdrawRequests={setWithdrawRequests}
+                    showToast={showToast}
+                  />
+                ) : (
+                  <StaffView
+                    user={user}
+                    setUser={setUser}
+                    staffList={staffList}
+                    setStaffList={setStaffList}
+                    orders={orders}
+                    setOrders={setOrders}
+                    transactions={transactions}
+                    setTransactions={setTransactions}
+                    withdrawRequests={withdrawRequests}
+                    setWithdrawRequests={setWithdrawRequests}
+                    showToast={showToast}
+                  />
+                )}
+              </main>
+
+              {/* FOOTER */}
+              <footer className="border-t border-slate-800 py-5 text-center text-xs text-blue-300/60 bg-[#040d25]/90">
+                Hệ Thống Quản Lý Đơn Hàng & Vận Hành Affiliate (OMS) © 2026 - Môn học: Thương Mại Điện Tử
+              </footer>
+            </>
+          )}
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
