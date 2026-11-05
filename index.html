@@ -41,7 +41,7 @@
   <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
   <!-- Supabase JS Client v2 (Cloud Database & Realtime Sync) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script type="module" src="./realtime.js"></script>
+  <script src="./realtime.js"></script>
   <!-- Babel Standalone -->
   <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.24.4/babel.min.js"></script>
 
@@ -146,32 +146,11 @@
     // ========================================================
     // SUPABASE CLOUD CONFIGURATION (TỰ ĐỘNG ĐỒNG BỘ ĐA THIẾT BỊ)
     // ========================================================
-    const SUPABASE_URL = "https://fiuyvbxamddiivzjvdio.supabase.co";
-    const SUPABASE_KEY = "sb_publishable_Q13khcwikoAPQhpGZGomMw_mcU3bb6r";
     const supabase = window.realtime ? window.realtime.supabase : null;
 
     // --- HELPER FORMAT TIỀN TỆ ---
     const formatVND = (amount) => {
       return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount || 0);
-    };
-
-    // --- LOCAL STORAGE HELPERS (Giữ dữ liệu khi F5) ---
-    const loadStorage = (key, defaultVal) => {
-      try {
-        const item = localStorage.getItem('oms_' + key);
-        if (item) return JSON.parse(item);
-      } catch (e) {
-        console.warn(e);
-      }
-      return defaultVal;
-    };
-
-    const saveStorage = (key, val) => {
-      try {
-        localStorage.setItem('oms_' + key, JSON.stringify(val));
-      } catch (e) {
-        console.warn(e);
-      }
     };
 
     // --- UNIVERSAL LUCIDE ICON WRAPPER ---
@@ -229,105 +208,6 @@
       User, LogIn, Layers, Box, BarChart3
     } = iconComponents;
 
-    // --- MOCK DATA GENERATION (50 NV THEO ĐÚNG ĐỀ BÀI) ---
-    const generateMockStaff = () => {
-      const staffList = [];
-      for (let i = 1; i <= 50; i++) {
-        const padId = String(i).padStart(2, '0');
-        staffList.push({
-          id: 'NV' + padId,
-          name: 'Nhân viên ' + padId,
-          email: 'nv' + padId + '@system.com',
-          password: 'staff' + padId, // staff01 -> staff50
-          balance: 1000000 + (i * 150000) + (i % 3 * 25000),
-          totalCommission: 200000 + (i * 45000) + (i % 5 * 12000),
-          completedOrders: 2 + (i % 15)
-        });
-      }
-      return staffList;
-    };
-
-    const INITIAL_STAFF = generateMockStaff();
-
-    const INITIAL_ORDERS = [
-      {
-        id: 'DH-10021',
-        staffId: 'NV01',
-        productName: 'Áo Nam Premium Cotton 100%',
-        platform: 'Shopee',
-        orderValue: 500000,
-        codAmount: 350000,
-        commissionRate: 10,
-        commissionAmount: 50000,
-        status: 'PENDING',
-        imageUrl: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=150&auto=format&fit=crop&q=80',
-        createdAt: new Date(Date.now() - 3600000 * 2).toLocaleString('vi-VN')
-      },
-      {
-        id: 'DH-10022',
-        staffId: 'NV01',
-        productName: 'Tai nghe Bluetooth Pro Max',
-        platform: 'Lazada',
-        orderValue: 1200000,
-        codAmount: 1200000,
-        commissionRate: 8,
-        commissionAmount: 96000,
-        status: 'CONFIRMED',
-        imageUrl: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=150&auto=format&fit=crop&q=80',
-        createdAt: new Date(Date.now() - 3600000 * 24).toLocaleString('vi-VN')
-      },
-      {
-        id: 'DH-10023',
-        staffId: 'NV02',
-        productName: 'Bàn phím cơ Không Dây RGB',
-        platform: 'TikTok Shop',
-        orderValue: 850000,
-        codAmount: 850000,
-        commissionRate: 12,
-        commissionAmount: 102000,
-        status: 'PENDING',
-        imageUrl: 'https://images.unsplash.com/photo-1618384887929-16ec33fab9ef?w=150&auto=format&fit=crop&q=80',
-        createdAt: new Date(Date.now() - 3600000 * 4).toLocaleString('vi-VN')
-      }
-    ];
-
-    const INITIAL_TRANSACTIONS = [
-      {
-        id: 'TX-1001',
-        userId: 'NV01',
-        userName: 'Nhân viên 01',
-        type: 'COMMISSION',
-        amount: 96000,
-        note: 'Hoa hồng đơn hàng DH-10022 (Lazada)',
-        status: 'SUCCESS',
-        timestamp: new Date(Date.now() - 3600000 * 24).toLocaleString('vi-VN')
-      },
-      {
-        id: 'TX-1002',
-        userId: 'NV01',
-        userName: 'Nhân viên 01',
-        type: 'DEPOSIT',
-        amount: 1000000,
-        note: 'Nạp tiền ứng quỹ COD',
-        status: 'SUCCESS',
-        timestamp: new Date(Date.now() - 3600000 * 12).toLocaleString('vi-VN')
-      }
-    ];
-
-    const INITIAL_WITHDRAWALS = [
-      {
-        id: 'WD-501',
-        staffId: 'NV01',
-        staffName: 'Nhân viên 01',
-        bankName: 'MB Bank',
-        bankAccount: '198082200407',
-        accountName: 'NGUYEN DUC HUY',
-        amount: 500000,
-        status: 'PENDING',
-        createdAt: new Date(Date.now() - 3600000 * 3).toLocaleString('vi-VN')
-      }
-    ];
-
     const ECOM_PLATFORMS = [
       { name: 'Shopee', logo: '🛒', color: 'from-orange-500 to-amber-600', desc: 'Sàn TMĐT phổ biến nhất Việt Nam' },
       { name: 'Lazada', logo: '🛍️', color: 'from-blue-600 to-indigo-700', desc: 'Hệ thống mua sắm trực tuyến uy tín' },
@@ -346,55 +226,74 @@
     // ========================================================
     // COMPONENT: MÀN HÌNH ĐĂNG NHẬP (KHỚP 100% ẢNH MẪU 562fa05d...)
     // ========================================================
-    function LoginScreen({ staffList, onLoginSuccess, showToast }) {
+    function LoginScreen({ cloudStatus, onLoginSuccess, showToast }) {
       const [loginForm, setLoginForm] = useState({ email: '', password: '' });
       const [loginError, setLoginError] = useState('');
       const [showPassword, setShowPassword] = useState(false);
+      const [isLoggingIn, setIsLoggingIn] = useState(false);
 
-      const handleSubmit = (e) => {
+      const handleSubmit = async (e) => {
         e.preventDefault();
         setLoginError('');
+
+        if (cloudStatus !== 'CONNECTED') {
+          setLoginError('Chưa kết nối được máy chủ dữ liệu. Vui lòng thử lại sau.');
+          return;
+        }
 
         const account = loginForm.email.trim();
         const password = loginForm.password.trim();
 
-        // 1. Kiểm tra Admin
-        if (account.toLowerCase() === 'admin@system.com' && password === 'admin123') {
-          onLoginSuccess({
-            role: 'ADMIN',
-            id: 'ADMIN',
-            name: 'Quản trị viên',
-            email: 'admin@system.com'
+        setIsLoggingIn(true);
+        try {
+          const { data, error } = await supabase.rpc('login_staff', {
+            p_account: account,
+            p_password: password
           });
-          showToast('Đăng nhập Quản Trị Viên thành công!');
-          return;
-        }
+          if (error) throw error;
 
-        // 2. Kiểm tra Nhân viên
-        const foundStaff = staffList.find(
-          s => s.email.toLowerCase() === account.toLowerCase() || s.id.toLowerCase() === account.toLowerCase()
-        );
-
-        if (foundStaff) {
-          if (foundStaff.password === password) {
-            onLoginSuccess({
-              role: 'STAFF',
-              id: foundStaff.id,
-              name: foundStaff.name,
-              email: foundStaff.email,
-              balance: foundStaff.balance,
-              totalCommission: foundStaff.totalCommission,
-              completedOrders: foundStaff.completedOrders
-            });
-            showToast('Đăng nhập thành công! Chào ' + foundStaff.name);
-            return;
-          } else {
-            setLoginError('Mật khẩu nhân viên không chính xác!');
+          const foundStaff = Array.isArray(data) ? data[0] : data;
+          if (!foundStaff) {
+            setLoginError('Tài khoản hoặc mật khẩu không chính xác!');
             return;
           }
-        }
 
-        setLoginError('Tài khoản hoặc mã nhân viên không tồn tại trên hệ thống!');
+          let adminStaff = null;
+          if (foundStaff.role === 'ADMIN') {
+            const { data: staffData, error: staffError } = await supabase.rpc('admin_list_staff', {
+              p_admin_account: account,
+              p_admin_password: password
+            });
+            if (staffError) throw staffError;
+            adminStaff = (staffData || []).map(s => ({
+              id: s.id,
+              name: s.name,
+              email: s.email,
+              password: s.password,
+              role: s.role,
+              balance: Number(s.balance || 0),
+              totalCommission: Number(s.total_commission || 0),
+              completedOrders: Number(s.completed_orders || 0)
+            }));
+          }
+
+          const user = {
+            role: foundStaff.role,
+            id: foundStaff.id,
+            name: foundStaff.name,
+            email: foundStaff.email,
+            balance: Number(foundStaff.balance || 0),
+            totalCommission: Number(foundStaff.total_commission || 0),
+            completedOrders: Number(foundStaff.completed_orders || 0)
+          };
+          onLoginSuccess(user, adminStaff, { account, password });
+          showToast('Đăng nhập thành công! Chào ' + foundStaff.name);
+        } catch (error) {
+          console.error('Supabase login failed:', error);
+          setLoginError('Không thể xác thực với máy chủ. Hãy chạy migration đăng nhập trong Supabase.');
+        } finally {
+          setIsLoggingIn(false);
+        }
       };
 
       return (
@@ -495,10 +394,11 @@
                   {/* Nút Đăng Nhập Hệ Thống */}
                   <button
                     type="submit"
-                    className="w-full btn-neon-primary text-white font-bold py-3.5 rounded-xl text-sm flex items-center justify-center gap-2 mt-4 tracking-wide cursor-pointer"
+                    disabled={cloudStatus !== 'CONNECTED' || isLoggingIn}
+                    className="w-full btn-neon-primary text-white font-bold py-3.5 rounded-xl text-sm flex items-center justify-center gap-2 mt-4 tracking-wide cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <LogIn className="w-4 h-4" />
-                    Đăng nhập Hệ thống
+                    {cloudStatus === 'CONNECTING' ? 'Đang kết nối máy chủ...' : cloudStatus === 'OFFLINE' ? 'Máy chủ chưa kết nối' : isLoggingIn ? 'Đang xác thực...' : 'Đăng nhập Hệ thống'}
                   </button>
                 </form>
 
@@ -514,6 +414,7 @@
     // COMPONENT: ADMIN MODULE (KHỚP 100% ẢNH MẪU DARK-BLUE & NEON OMS)
     // ========================================================
     function AdminView({
+      authCredentials,
       staffList,
       setStaffList,
       orders,
@@ -525,6 +426,7 @@
       showToast
     }) {
       const [adminTab, setAdminTab] = useState('create-order');
+      const adjustmentInProgress = useRef(false);
 
       // Form tạo đơn hàng mới
       const [orderForm, setOrderForm] = useState({
@@ -557,7 +459,7 @@
       };
 
       // 1. Tạo đơn hàng mới
-      const handleCreateOrder = (e) => {
+      const handleCreateOrder = async (e) => {
         e.preventDefault();
         if (!orderForm.productName || !orderForm.orderValue) {
           showToast('Vui lòng điền tên sản phẩm và giá trị đơn hàng!', 'error');
@@ -593,25 +495,27 @@
           createdAt: new Date().toLocaleString('vi-VN')
         };
 
-        setOrders([createdOrder, ...orders]);
-        showToast('Đã tạo thành công đơn ' + orderId + ' cho ' + orderForm.staffId + '!');
-
-        // Ghi vào Supabase Database
-        if (supabase) {
-          supabase.from('orders').insert([{
-            id: createdOrder.id,
-            staff_id: createdOrder.staffId,
-            product_name: createdOrder.productName,
-            platform: createdOrder.platform,
-            order_value: createdOrder.orderValue,
-            cod_amount: createdOrder.codAmount,
-            commission_rate: createdOrder.commissionRate,
-            commission_amount: createdOrder.commissionAmount,
-            status: createdOrder.status,
-            created_at: new Date().toISOString()
-          }]).then(({ error }) => {
-            if (error) console.warn("Supabase insert order error:", error);
+        try {
+          const { error } = await supabase.rpc('admin_create_order', {
+            p_admin_account: authCredentials.account,
+            p_admin_password: authCredentials.password,
+            p_id: createdOrder.id,
+            p_staff_id: createdOrder.staffId,
+            p_product_name: createdOrder.productName,
+            p_platform: createdOrder.platform,
+            p_order_value: Math.round(createdOrder.orderValue),
+            p_cod_amount: Math.round(createdOrder.codAmount),
+            p_commission_rate: createdOrder.commissionRate,
+            p_commission_amount: createdOrder.commissionAmount
           });
+          if (error) throw error;
+
+          setOrders(prev => [createdOrder, ...prev]);
+          showToast('Đã tạo thành công đơn ' + orderId + ' cho ' + orderForm.staffId + '!');
+        } catch (error) {
+          console.error('Create order failed:', error);
+          showToast('Không tạo được đơn hàng: ' + error.message, 'error');
+          return;
         }
 
         setOrderForm({
@@ -626,154 +530,122 @@
       };
 
       // 2. Điều chỉnh số dư thủ công
-      const handleSaveAdjustment = (e) => {
+      const handleSaveAdjustment = async (e) => {
         e.preventDefault();
-        if (!adjustModal || !adjustAmount || isNaN(adjustAmount)) return;
-        const val = parseFloat(adjustAmount);
+        if (adjustmentInProgress.current || !adjustModal || !adjustAmount || isNaN(adjustAmount)) return;
+        const val = Math.round(parseFloat(adjustAmount));
+        if (val <= 0) return;
         const delta = adjustType === 'ADD' ? val : -val;
+        const note = adjustReason || ('Admin ' + (adjustType === 'ADD' ? 'cộng' : 'trừ') + ' tiền thủ công');
 
-        setStaffList(prev => prev.map(s => {
-          if (s.id === adjustModal.id) {
-            return { ...s, balance: Math.max(0, s.balance + delta) };
-          }
-          return s;
-        }));
+        adjustmentInProgress.current = true;
+        try {
+          const { data, error } = await supabase.rpc('admin_adjust_staff_balance', {
+            p_admin_account: authCredentials.account,
+            p_admin_password: authCredentials.password,
+            p_staff_id: adjustModal.id,
+            p_delta: delta,
+            p_note: note
+          });
+          if (error) throw error;
+          const result = Array.isArray(data) ? data[0] : data;
+          if (!result) throw new Error('Máy chủ không trả về kết quả điều chỉnh.');
 
-        const newTx = {
-          id: 'TX-' + Math.floor(1000 + Math.random() * 9000),
-          userId: adjustModal.id,
-          userName: adjustModal.name,
-          type: 'ADJUSTMENT',
-          amount: delta,
-          note: adjustReason || ('Admin ' + (adjustType === 'ADD' ? 'cộng' : 'trừ') + ' tiền thủ công'),
-          status: 'SUCCESS',
-          timestamp: new Date().toLocaleString('vi-VN')
-        };
-        setTransactions([newTx, ...transactions]);
-
-        showToast('Đã ' + (adjustType === 'ADD' ? 'cộng' : 'trừ') + ' ' + formatVND(val) + ' cho ' + adjustModal.name);
-        
-        // Cập nhật Supabase
-        if (supabase) {
-          const newBal = Math.max(0, adjustModal.balance + delta);
-          supabase.from('staff').update({ balance: newBal }).eq('id', adjustModal.id).then();
-          supabase.from('transactions').insert([{
-            id: newTx.id,
-            user_id: newTx.userId,
-            user_name: newTx.userName,
-            type: newTx.type,
-            amount: newTx.amount,
-            note: newTx.note,
-            status: newTx.status,
-            timestamp: new Date().toISOString()
-          }]).then();
+          setStaffList(prev => prev.map(s => s.id === adjustModal.id
+            ? { ...s, balance: Number(result.new_balance) }
+            : s
+          ));
+          setTransactions(prev => [{
+            id: result.transaction_id,
+            userId: adjustModal.id,
+            userName: adjustModal.name,
+            type: 'ADJUSTMENT',
+            amount: delta,
+            note,
+            status: 'SUCCESS',
+            timestamp: new Date().toLocaleString('vi-VN')
+          }, ...prev]);
+          showToast('Đã ' + (adjustType === 'ADD' ? 'cộng' : 'trừ') + ' ' + formatVND(val) + ' cho ' + adjustModal.name);
+          setAdjustModal(null);
+          setAdjustAmount('');
+          setAdjustReason('');
+        } catch (error) {
+          console.error('Balance adjustment failed:', error);
+          showToast('Không điều chỉnh được số dư: ' + error.message, 'error');
+        } finally {
+          adjustmentInProgress.current = false;
         }
-
-        setAdjustModal(null);
-        setAdjustAmount('');
-        setAdjustReason('');
       };
 
       // 3. Đổi mật khẩu nhân viên
-      const handleSavePassword = (e) => {
+      const handleSavePassword = async (e) => {
         e.preventDefault();
         if (!passwordModal || !newPassword.trim()) return;
 
-        setStaffList(prev => prev.map(s => {
-          if (s.id === passwordModal.id) {
-            return { ...s, password: newPassword.trim() };
-          }
-          return s;
-        }));
-
-        showToast('Đã đổi mật khẩu cho ' + passwordModal.id + ' thành công!');
-        if (supabase) {
-          supabase.from('staff').update({ password: newPassword.trim() }).eq('id', passwordModal.id).then();
+        try {
+          const { error } = await supabase.rpc('admin_set_staff_password', {
+            p_admin_account: authCredentials.account,
+            p_admin_password: authCredentials.password,
+            p_staff_id: passwordModal.id,
+            p_new_password: newPassword.trim()
+          });
+          if (error) throw error;
+          setStaffList(prev => prev.map(s => s.id === passwordModal.id
+            ? { ...s, password: newPassword.trim() }
+            : s
+          ));
+          showToast('Đã đổi mật khẩu cho ' + passwordModal.id + ' thành công!');
+          setPasswordModal(null);
+          setNewPassword('');
+        } catch (error) {
+          console.error('Password update failed:', error);
+          showToast('Không đổi được mật khẩu: ' + error.message, 'error');
         }
-        setPasswordModal(null);
-        setNewPassword('');
       };
 
       // 4. Duyệt yêu cầu rút tiền (Tiền trừ trực tiếp vào hệ thống)
-      const handleApproveWithdraw = (reqId) => {
+      const handleApproveWithdraw = async (reqId) => {
         const targetReq = withdrawRequests.find(r => r.id === reqId);
         if (!targetReq) return;
 
-        setStaffList(prev => prev.map(s => {
-          if (s.id === targetReq.staffId) {
-            return { ...s, balance: Math.max(0, s.balance - targetReq.amount) };
-          }
-          return s;
-        }));
-
-        setWithdrawRequests(prev => prev.map(r => r.id === reqId ? { ...r, status: 'APPROVED' } : r));
-
-        const newTx = {
-          id: 'TX-' + Math.floor(1000 + Math.random() * 9000),
-          userId: targetReq.staffId,
-          userName: targetReq.staffName,
-          type: 'WITHDRAW',
-          amount: -targetReq.amount,
-          note: 'Duyệt chi tiền về ' + targetReq.bankName + ' - ' + targetReq.bankAccount + ' (' + targetReq.accountName + ')',
-          status: 'SUCCESS',
-          timestamp: new Date().toLocaleString('vi-VN')
-        };
-        setTransactions([newTx, ...transactions]);
-
-        showToast('Đã duyệt chi tiền thành công đơn ' + targetReq.id + '!');
-
-        if (supabase) {
-          supabase.from('withdraw_requests').update({ status: 'APPROVED', processed_at: new Date().toISOString() }).eq('id', reqId).then();
-          const targetStaff = staffList.find(s => s.id === targetReq.staffId);
-          if (targetStaff) {
-            supabase.from('staff').update({ balance: Math.max(0, targetStaff.balance - targetReq.amount) }).eq('id', targetReq.staffId).then();
-          }
-          supabase.from('transactions').insert([{
-            id: newTx.id,
-            user_id: newTx.userId,
-            user_name: newTx.userName,
-            type: newTx.type,
-            amount: newTx.amount,
-            note: newTx.note,
-            status: newTx.status,
-            timestamp: new Date().toISOString()
-          }]).then();
+        try {
+          const { data, error } = await supabase.rpc('admin_process_withdraw', {
+            p_admin_account: authCredentials.account,
+            p_admin_password: authCredentials.password,
+            p_request_id: reqId,
+            p_approve: true
+          });
+          if (error) throw error;
+          setStaffList(prev => prev.map(s => s.id === targetReq.staffId
+            ? { ...s, balance: Number(data) }
+            : s
+          ));
+          setWithdrawRequests(prev => prev.map(r => r.id === reqId ? { ...r, status: 'APPROVED' } : r));
+          showToast('Đã duyệt chi tiền thành công đơn ' + targetReq.id + '!');
+        } catch (error) {
+          console.error('Withdraw approval failed:', error);
+          showToast('Không duyệt được yêu cầu rút tiền: ' + error.message, 'error');
         }
       };
 
       // 5. Từ chối rút tiền (Hoàn tiền lại Ví NV theo đề bài)
-      const handleRejectWithdraw = (reqId) => {
+      const handleRejectWithdraw = async (reqId) => {
         const targetReq = withdrawRequests.find(r => r.id === reqId);
         if (!targetReq) return;
 
-        setWithdrawRequests(prev => prev.map(r => r.id === reqId ? { ...r, status: 'REJECTED' } : r));
-
-        const newTx = {
-          id: 'TX-' + Math.floor(1000 + Math.random() * 9000),
-          userId: targetReq.staffId,
-          userName: targetReq.staffName,
-          type: 'ADJUSTMENT',
-          amount: 0,
-          note: 'Từ chối lệnh rút tiền ' + targetReq.id + ' (Giữ nguyên số dư)',
-          status: 'REJECTED',
-          timestamp: new Date().toLocaleString('vi-VN')
-        };
-        setTransactions([newTx, ...transactions]);
-
-        showToast('Đã từ chối lệnh rút tiền ' + reqId, 'error');
-
-        if (supabase) {
-          supabase.from('withdraw_requests').update({ status: 'REJECTED', processed_at: new Date().toISOString() }).eq('id', reqId).then();
-          supabase.from('transactions').insert([{
-            id: newTx.id,
-            user_id: newTx.userId,
-            user_name: newTx.userName,
-            type: newTx.type,
-            amount: newTx.amount,
-            note: newTx.note,
-            status: newTx.status,
-            timestamp: new Date().toISOString()
-          }]).then();
+        try {
+          const { error } = await supabase.rpc('admin_process_withdraw', {
+            p_admin_account: authCredentials.account,
+            p_admin_password: authCredentials.password,
+            p_request_id: reqId,
+            p_approve: false
+          });
+          if (error) throw error;
+          setWithdrawRequests(prev => prev.map(r => r.id === reqId ? { ...r, status: 'REJECTED' } : r));
+          showToast('Đã từ chối lệnh rút tiền ' + reqId, 'error');
+        } catch (error) {
+          console.error('Withdraw rejection failed:', error);
+          showToast('Không từ chối được yêu cầu rút tiền: ' + error.message, 'error');
         }
       };
 
@@ -1423,6 +1295,7 @@
     // ========================================================
     function StaffView({
       user,
+      authCredentials,
       setUser,
       staffList,
       setStaffList,
@@ -1439,8 +1312,12 @@
       const [showDepositModal, setShowDepositModal] = useState(false);
       const [depositAmount, setDepositAmount] = useState('500000');
       const [depositNote, setDepositNote] = useState('');
+      const [depositInProgress, setDepositInProgress] = useState(false);
+      const depositLock = useRef(false);
 
       const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+      const [withdrawInProgress, setWithdrawInProgress] = useState(false);
+      const withdrawLock = useRef(false);
       const [withdrawForm, setWithdrawForm] = useState({
         amount: '',
         bankName: 'MB Bank',
@@ -1451,122 +1328,105 @@
       const myOrders = orders.filter(o => o.staffId === user.id);
       const myPendingOrders = myOrders.filter(o => o.status === 'PENDING');
       const myTransactions = transactions.filter(t => t.userId === user.id);
+      const reservedWithdrawAmount = withdrawRequests
+        .filter(request => request.staffId === user.id && request.status === 'PENDING')
+        .reduce((total, request) => total + request.amount, 0);
+      const availableBalance = Math.max(0, user.balance - reservedWithdrawAmount);
 
       // Xác nhận đơn hàng -> Tự động cộng hoa hồng vào Ví
-      const handleConfirmOrder = (orderId) => {
+      const handleConfirmOrder = async (orderId) => {
         const ord = orders.find(o => o.id === orderId && o.staffId === user.id);
         if (!ord || ord.status !== 'PENDING') return;
 
-        setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: 'CONFIRMED' } : o));
+        try {
+          const { data: newBalance, error } = await supabase.rpc('staff_confirm_order', {
+            p_account: authCredentials.account,
+            p_password: authCredentials.password,
+            p_order_id: orderId
+          });
+          if (error) throw error;
 
-        const commission = ord.commissionAmount;
-        setStaffList(prev => prev.map(s => {
-          if (s.id === user.id) {
-            return {
-              ...s,
-              balance: s.balance + commission,
-              totalCommission: s.totalCommission + commission,
-              completedOrders: s.completedOrders + 1
-            };
-          }
-          return s;
-        }));
-
-        const newTx = {
-          id: 'TX-' + Math.floor(1000 + Math.random() * 9000),
-          userId: user.id,
-          userName: user.name,
-          type: 'COMMISSION',
-          amount: commission,
-          note: 'Hoa hồng đơn hàng ' + ord.id + ' (' + ord.platform + ')',
-          status: 'SUCCESS',
-          timestamp: new Date().toLocaleString('vi-VN')
-        };
-        setTransactions([newTx, ...transactions]);
-
-        showToast('Xác nhận thành công! +' + formatVND(commission) + ' hoa hồng đã được cộng vào Ví COD!');
-
-        if (supabase) {
-          supabase.from('orders').update({ status: 'CONFIRMED', confirmed_at: new Date().toISOString() }).eq('id', orderId).then();
-          supabase.from('staff').update({
-            balance: user.balance + commission,
-            total_commission: user.totalCommission + commission,
-            completed_orders: user.completedOrders + 1
-          }).eq('id', user.id).then();
-          supabase.from('transactions').insert([{
-            id: newTx.id,
-            user_id: newTx.userId,
-            user_name: newTx.userName,
-            type: newTx.type,
-            amount: newTx.amount,
-            note: newTx.note,
-            status: newTx.status,
-            timestamp: new Date().toISOString()
-          }]).then();
+          setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: 'CONFIRMED' } : o));
+          setStaffList(prev => prev.map(s => s.id === user.id ? {
+            ...s,
+            balance: Number(newBalance),
+            totalCommission: s.totalCommission + ord.commissionAmount,
+            completedOrders: s.completedOrders + 1
+          } : s));
+          showToast('Xác nhận thành công! +' + formatVND(ord.commissionAmount) + ' hoa hồng đã được cộng vào Ví COD!');
+        } catch (error) {
+          console.error('Order confirmation failed:', error);
+          showToast('Không xác nhận được đơn hàng: ' + error.message, 'error');
         }
       };
 
       // Nạp tiền vào quỹ COD
-      const handleConfirmDeposit = (e) => {
+      const handleConfirmDeposit = async (e) => {
         e.preventDefault();
+        if (depositLock.current) return;
         const amt = parseFloat(depositAmount) || 0;
-        if (amt <= 0) return;
-
-        setStaffList(prev => prev.map(s => {
-          if (s.id === user.id) {
-            return { ...s, balance: s.balance + amt };
-          }
-          return s;
-        }));
-
-        const newTx = {
-          id: 'TX-' + Math.floor(1000 + Math.random() * 9000),
-          userId: user.id,
-          userName: user.name,
-          type: 'DEPOSIT',
-          amount: amt,
-          note: depositNote || 'Nạp tiền ứng quỹ COD',
-          status: 'SUCCESS',
-          timestamp: new Date().toLocaleString('vi-VN')
-        };
-        setTransactions([newTx, ...transactions]);
-
-        showToast('Nạp thành công +' + formatVND(amt) + ' vào quỹ COD!');
-
-        if (supabase) {
-          supabase.from('staff').update({ balance: user.balance + amt }).eq('id', user.id).then();
-          supabase.from('transactions').insert([{
-            id: newTx.id,
-            user_id: newTx.userId,
-            user_name: newTx.userName,
-            type: newTx.type,
-            amount: newTx.amount,
-            note: newTx.note,
-            status: newTx.status,
-            timestamp: new Date().toISOString()
-          }]).then();
+        if (amt <= 0) {
+          showToast('Số tiền nạp phải lớn hơn 0.', 'error');
+          return;
         }
 
-        setShowDepositModal(false);
+        depositLock.current = true;
+        setDepositInProgress(true);
+        try {
+          const { data, error } = await supabase.rpc('staff_deposit', {
+            p_account: authCredentials.account,
+            p_password: authCredentials.password,
+            p_amount: Math.round(amt),
+            p_note: depositNote || 'Nạp tiền ứng quỹ COD'
+          });
+          if (error) throw error;
+
+          const result = Array.isArray(data) ? data[0] : data;
+          if (!result) throw new Error('Máy chủ không trả về kết quả nạp tiền.');
+
+          setStaffList(prev => prev.map(s =>
+            s.id === user.id ? { ...s, balance: Number(result.new_balance) } : s
+          ));
+          setTransactions(prev => [{
+            id: result.transaction_id,
+            userId: user.id,
+            userName: user.name,
+            type: 'DEPOSIT',
+            amount: Math.round(amt),
+            note: depositNote || 'Nạp tiền ứng quỹ COD',
+            status: 'SUCCESS',
+            timestamp: new Date().toLocaleString('vi-VN')
+          }, ...prev]);
+
+          showToast('Nạp thành công +' + formatVND(Math.round(amt)) + ' vào quỹ COD!');
+          setShowDepositModal(false);
+        } catch (error) {
+          console.error('Supabase deposit failed:', error);
+          showToast('Nạp tiền thất bại: ' + error.message, 'error');
+        } finally {
+          depositLock.current = false;
+          setDepositInProgress(false);
+        }
       };
 
       // Gửi yêu cầu rút tiền
-      const handleRequestWithdraw = (e) => {
+      const handleRequestWithdraw = async (e) => {
         e.preventDefault();
-        const amt = parseFloat(withdrawForm.amount) || 0;
+        if (withdrawLock.current) return;
+        const amt = Math.round(parseFloat(withdrawForm.amount) || 0);
 
         if (amt <= 0) {
           showToast('Số tiền rút không hợp lệ!', 'error');
           return;
         }
 
-        if (amt > user.balance) {
+        if (amt > availableBalance) {
           showToast('Số dư ví không đủ để rút số tiền này!', 'error');
           return;
         }
 
         const newReq = {
-          id: 'WD-' + Math.floor(100 + Math.random() * 900),
+          id: 'WD-' + crypto.randomUUID(),
           staffId: user.id,
           staffName: user.name,
           bankName: withdrawForm.bankName,
@@ -1577,24 +1437,31 @@
           createdAt: new Date().toLocaleString('vi-VN')
         };
 
-        setWithdrawRequests([newReq, ...withdrawRequests]);
-        showToast('Đã gửi yêu cầu rút ' + formatVND(amt) + '! Vui lòng chờ Admin phê duyệt.');
+        withdrawLock.current = true;
+        setWithdrawInProgress(true);
+        try {
+          const { error } = await supabase.rpc('staff_request_withdraw', {
+            p_account: authCredentials.account,
+            p_password: authCredentials.password,
+            p_id: newReq.id,
+            p_amount: newReq.amount,
+            p_bank_name: newReq.bankName,
+            p_bank_account: newReq.bankAccount,
+            p_account_name: newReq.accountName
+          });
+          if (error) throw error;
 
-        if (supabase) {
-          supabase.from('withdraw_requests').insert([{
-            id: newReq.id,
-            staff_id: newReq.staffId,
-            staff_name: newReq.staffName,
-            bank_name: newReq.bankName,
-            bank_account: newReq.bankAccount,
-            account_name: newReq.accountName,
-            amount: newReq.amount,
-            status: 'PENDING',
-            created_at: new Date().toISOString()
-          }]).then();
+          setWithdrawRequests(prev => [newReq, ...prev]);
+          showToast('Đã gửi yêu cầu rút ' + formatVND(amt) + '! Vui lòng chờ Admin phê duyệt.');
+          setShowWithdrawModal(false);
+          setWithdrawForm(prev => ({ ...prev, amount: '' }));
+        } catch (error) {
+          console.error('Withdraw request failed:', error);
+          showToast('Không gửi được yêu cầu rút tiền: ' + error.message, 'error');
+        } finally {
+          withdrawLock.current = false;
+          setWithdrawInProgress(false);
         }
-        setShowWithdrawModal(false);
-        setWithdrawForm({ ...withdrawForm, amount: '' });
       };
 
       return (
@@ -1879,7 +1746,9 @@
 
                 <div className="flex gap-3 pt-3">
                   <button type="button" onClick={() => setShowDepositModal(false)} className="w-1/2 bg-[#091b4c] text-blue-200 font-bold py-3 rounded-xl text-xs">Hủy</button>
-                  <button type="submit" className="w-1/2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl text-xs shadow-md shadow-black/30">Xác Nhận Đã Nạp</button>
+                  <button type="submit" disabled={depositInProgress} className="w-1/2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl text-xs shadow-md shadow-black/30 disabled:opacity-50">
+                    {depositInProgress ? 'Đang xử lý...' : 'Xác Nhận Đã Nạp'}
+                  </button>
                 </div>
               </form>
             </div>
@@ -1899,7 +1768,7 @@
 
                 <div className="bg-[#071333] p-3 rounded-xl border border-slate-800 text-xs flex justify-between">
                   <span className="text-blue-200">Số dư khả dụng:</span>
-                  <span className="text-emerald-400 font-bold font-mono">{formatVND(user.balance)}</span>
+                  <span className="text-emerald-400 font-bold font-mono">{formatVND(availableBalance)}</span>
                 </div>
 
                 <div>
@@ -1908,7 +1777,7 @@
                     type="number"
                     required
                     min="50000"
-                    max={user.balance}
+                    max={availableBalance}
                     placeholder="VD: 500000"
                     value={withdrawForm.amount}
                     onChange={(e) => setWithdrawForm({ ...withdrawForm, amount: e.target.value })}
@@ -1960,7 +1829,9 @@
 
                 <div className="flex gap-3 pt-3">
                   <button type="button" onClick={() => setShowWithdrawModal(false)} className="w-1/2 bg-[#091b4c] text-blue-200 font-bold py-3 rounded-xl text-xs">Hủy</button>
-                  <button type="submit" className="w-1/2 btn-neon-primary text-white font-bold py-3 rounded-xl text-xs">Gửi Yêu Cầu</button>
+                  <button type="submit" disabled={withdrawInProgress} className="w-1/2 btn-neon-primary text-white font-bold py-3 rounded-xl text-xs disabled:opacity-50">
+                    {withdrawInProgress ? 'Đang gửi...' : 'Gửi Yêu Cầu'}
+                  </button>
                 </div>
               </form>
             </div>
@@ -1973,11 +1844,20 @@
     // ROOT APP COMPONENT (CHỨA HEADER & SHELL CHUẨN MẪU)
     // ========================================================
     function App() {
-      const [staffList, setStaffList] = useState(() => loadStorage('staffList', INITIAL_STAFF));
-      const [orders, setOrders] = useState(() => loadStorage('orders', INITIAL_ORDERS));
-      const [transactions, setTransactions] = useState(() => loadStorage('transactions', INITIAL_TRANSACTIONS));
-      const [withdrawRequests, setWithdrawRequests] = useState(() => loadStorage('withdrawals', INITIAL_WITHDRAWALS));
-      const [user, setUser] = useState(() => loadStorage('currentUser', null));
+      const [staffList, setStaffList] = useState([]);
+      const [orders, setOrders] = useState([]);
+      const [transactions, setTransactions] = useState([]);
+      const [withdrawRequests, setWithdrawRequests] = useState([]);
+      const [user, setUser] = useState(null);
+      const [authCredentials, setAuthCredentials] = useState(null);
+      const [realtimeConnected, setRealtimeConnected] = useState(false);
+      const syncGeneration = useRef(0);
+
+      const handleLoginSuccess = (nextUser, adminStaff, credentials) => {
+        setUser(nextUser);
+        setAuthCredentials(credentials);
+        if (adminStaff) setStaffList(adminStaff);
+      };
 
       const [toast, setToast] = useState(null);
       const [cloudStatus, setCloudStatus] = useState('CONNECTING'); // 'CONNECTED' | 'OFFLINE' | 'CONNECTING'
@@ -1987,108 +1867,131 @@
         setTimeout(() => setToast(null), 3500);
       };
 
-      // TỰ ĐỘNG ĐỒNG BỘ SUPABASE CLOUD (KẾT NỐI ONLINE / OFFLINE FALLBACK)
+      // Load shared records and only the staff rows allowed for the signed-in account.
       const syncFromSupabase = async () => {
+        const requestId = ++syncGeneration.current;
         if (!supabase) {
           setCloudStatus('OFFLINE');
           return;
         }
 
         try {
-          // 1. Fetch Staff
-          const { data: staffData, error: staffErr } = await supabase.from('staff').select('*');
-          if (!staffErr && staffData && staffData.length > 0) {
-            const mappedStaff = staffData.map(s => ({
-              id: s.id,
-              name: s.name,
-              email: s.email,
-              password: s.password,
-              balance: Number(s.balance || 0),
-              totalCommission: Number(s.total_commission || 0),
-              completedOrders: Number(s.completed_orders || 0)
-            }));
-            setStaffList(mappedStaff);
+          if (!user || !authCredentials) {
+            const { error } = await supabase.rpc('login_staff', {
+              p_account: '__connection_check__',
+              p_password: '__connection_check__'
+            });
+            if (error) throw error;
+            if (requestId === syncGeneration.current) setCloudStatus('CONNECTED');
+            return;
           }
 
-          // 2. Fetch Orders
-          const { data: ordData } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
-          if (ordData && ordData.length > 0) {
-            setOrders(ordData.map(o => ({
-              id: o.id,
-              staffId: o.staff_id,
-              productName: o.product_name,
-              platform: o.platform,
-              orderValue: Number(o.order_value || 0),
-              codAmount: Number(o.cod_amount || 0),
-              commissionRate: Number(o.commission_rate || 0),
-              commissionAmount: Number(o.commission_amount || 0),
-              status: o.status,
-              createdAt: new Date(o.created_at).toLocaleString('vi-VN')
-            })));
-          }
+          const [accountDataResult, staffResult] = await Promise.all([
+            supabase.rpc('load_account_data', {
+              p_account: authCredentials.account,
+              p_password: authCredentials.password
+            }),
+            user.role === 'ADMIN'
+              ? supabase.rpc('admin_list_staff', {
+                  p_admin_account: authCredentials.account,
+                  p_admin_password: authCredentials.password
+                })
+              : supabase.rpc('login_staff', {
+                  p_account: authCredentials.account,
+                  p_password: authCredentials.password
+                })
+          ]);
+          if (accountDataResult.error) throw accountDataResult.error;
+          if (staffResult.error) throw staffResult.error;
+          if (requestId !== syncGeneration.current) return;
 
-          // 3. Fetch Transactions
-          const { data: txData } = await supabase.from('transactions').select('*').order('timestamp', { ascending: false });
-          if (txData && txData.length > 0) {
-            setTransactions(txData.map(t => ({
-              id: t.id,
-              userId: t.user_id,
-              userName: t.user_name,
-              type: t.type,
-              amount: Number(t.amount || 0),
-              note: t.note,
-              status: t.status,
-              timestamp: new Date(t.timestamp).toLocaleString('vi-VN')
-            })));
-          }
+          const accountData = accountDataResult.data;
+          const staffRows = Array.isArray(staffResult.data)
+            ? staffResult.data
+            : staffResult.data ? [staffResult.data] : [];
+          setStaffList(staffRows.map(s => ({
+            id: s.id,
+            name: s.name,
+            email: s.email,
+            password: s.password,
+            role: s.role,
+            balance: Number(s.balance || 0),
+            totalCommission: Number(s.total_commission || 0),
+            completedOrders: Number(s.completed_orders || 0)
+          })));
 
-          // 4. Fetch Withdrawals
-          const { data: wdData } = await supabase.from('withdraw_requests').select('*').order('created_at', { ascending: false });
-          if (wdData && wdData.length > 0) {
-            setWithdrawRequests(wdData.map(w => ({
-              id: w.id,
-              staffId: w.staff_id,
-              staffName: w.staff_name,
-              bankName: w.bank_name,
-              bankAccount: w.bank_account,
-              accountName: w.account_name,
-              amount: Number(w.amount || 0),
-              status: w.status,
-              createdAt: new Date(w.created_at).toLocaleString('vi-VN')
-            })));
-          }
+          setOrders((accountData.orders || []).map(o => ({
+            id: o.id,
+            staffId: o.staff_id,
+            productName: o.product_name,
+            platform: o.platform,
+            orderValue: Number(o.order_value || 0),
+            codAmount: Number(o.cod_amount || 0),
+            commissionRate: Number(o.commission_rate || 0),
+            commissionAmount: Number(o.commission_amount || 0),
+            status: o.status,
+            createdAt: new Date(o.created_at).toLocaleString('vi-VN')
+          })));
+          setTransactions((accountData.transactions || []).map(t => ({
+            id: t.id,
+            userId: t.user_id,
+            userName: t.user_name,
+            type: t.type,
+            amount: Number(t.amount || 0),
+            note: t.note,
+            status: t.status,
+            timestamp: new Date(t.timestamp).toLocaleString('vi-VN')
+          })));
+          setWithdrawRequests((accountData.withdraw_requests || []).map(w => ({
+            id: w.id,
+            staffId: w.staff_id,
+            staffName: w.staff_name,
+            bankName: w.bank_name,
+            bankAccount: w.bank_account,
+            accountName: w.account_name,
+            amount: Number(w.amount || 0),
+            status: w.status,
+            createdAt: new Date(w.created_at).toLocaleString('vi-VN')
+          })));
 
           setCloudStatus('CONNECTED');
         } catch (err) {
-          console.warn("Supabase fetch fallback to local:", err);
-          setCloudStatus('OFFLINE');
+          console.error("Supabase data load failed:", err);
+          if (requestId === syncGeneration.current) setCloudStatus('OFFLINE');
         }
       };
 
       useEffect(() => {
         syncFromSupabase();
 
-        // Đăng ký Supabase Realtime Channel để đồng bộ giữa các máy
         if (supabase) {
-          const channel = supabase.channel('oms_cloud_realtime')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => syncFromSupabase())
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'staff' }, () => syncFromSupabase())
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'withdraw_requests' }, () => syncFromSupabase())
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions' }, () => syncFromSupabase())
-            .subscribe();
+          let refreshTimer;
+          const channel = supabase.channel('oms-data-changes')
+            .on('broadcast', { event: 'data_changed' }, message => {
+              const change = message.payload;
+              if (change?.operation === 'INSERT') {
+                if (change.table === 'withdraw_requests' && user?.role === 'ADMIN') {
+                  showToast(`Có yêu cầu rút tiền mới từ ${change.staff_id || 'nhân viên'}.`, 'info');
+                } else if (change.table === 'orders' && user?.role === 'STAFF' && change.staff_id === user.id) {
+                  showToast('Bạn có đơn hàng mới được phân công.', 'info');
+                }
+              }
+              clearTimeout(refreshTimer);
+              refreshTimer = setTimeout(syncFromSupabase, 150);
+            })
+            .subscribe(status => {
+              const connected = status === 'SUBSCRIBED';
+              setRealtimeConnected(connected);
+              if (!connected) console.warn('OMS Realtime channel status:', status);
+            });
 
           return () => {
+            clearTimeout(refreshTimer);
             supabase.removeChannel(channel);
+            setRealtimeConnected(false);
           };
         }
-      }, []);
-
-      // Tự động lưu LocalStorage cache
-      useEffect(() => { saveStorage('staffList', staffList); }, [staffList]);
-      useEffect(() => { saveStorage('orders', orders); }, [orders]);
-      useEffect(() => { saveStorage('transactions', transactions); }, [transactions]);
-      useEffect(() => { saveStorage('withdrawals', withdrawRequests); }, [withdrawRequests]);
-      useEffect(() => { saveStorage('currentUser', user); }, [user]);
+      }, [user?.id, user?.role, authCredentials?.account, authCredentials?.password]);
 
       // Đồng bộ user state khi staffList thay đổi
       useEffect(() => {
@@ -2102,6 +2005,7 @@
 
       const handleLogout = () => {
         setUser(null);
+        setAuthCredentials(null);
         showToast('Đã đăng xuất khỏi hệ thống', 'info');
       };
 
@@ -2116,7 +2020,7 @@
           )}
 
           {!user ? (
-            <LoginScreen staffList={staffList} onLoginSuccess={setUser} showToast={showToast} />
+            <LoginScreen cloudStatus={cloudStatus} onLoginSuccess={handleLoginSuccess} showToast={showToast} />
           ) : (
             <>
               {/* HEADER BAR CHUẨN MẪU (THEO ĐÚNG ẢNH MẪU OMS SYSTEM) */}
@@ -2150,15 +2054,15 @@
                     {/* Tiện ích & Nút Đăng Xuất */}
                     <div className="flex items-center gap-3 sm:gap-4">
                       {/* Trạng thái Supabase Cloud Sync */}
-                      {cloudStatus === 'CONNECTED' ? (
+                      {cloudStatus === 'CONNECTED' && realtimeConnected ? (
                         <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
                           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                          <span>Cloud Sync: Online</span>
+                          <span>Cloud Sync: Live</span>
                         </div>
                       ) : (
                         <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30" title="Chạy supabase_schema.sql trong Supabase để bật Cloud Realtime">
                           <span className="w-2 h-2 rounded-full bg-amber-400"></span>
-                          <span>Local Mode (Chờ SQL)</span>
+                          <span>{cloudStatus === 'CONNECTING' ? 'Đang kết nối...' : 'Cloud Realtime Offline'}</span>
                         </div>
                       )}
 
@@ -2187,6 +2091,7 @@
               <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
                 {user.role === 'ADMIN' ? (
                   <AdminView
+                    authCredentials={authCredentials}
                     staffList={staffList}
                     setStaffList={setStaffList}
                     orders={orders}
@@ -2200,6 +2105,7 @@
                 ) : (
                   <StaffView
                     user={user}
+                    authCredentials={authCredentials}
                     setUser={setUser}
                     staffList={staffList}
                     setStaffList={setStaffList}
